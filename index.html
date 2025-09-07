@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>3D 模型</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="stylesheet" href="./assets/styles.css">
+    <style>
+      /* 极简统一尺寸：图片/视频/模型一致展示区域 */
+      .media { width: 100%; height: 360px; background: #ffffff; object-fit: contain; display: block; border-radius: 24px; overflow: hidden; }
+      @media (max-width: 640px) { .media { height: 260px; } }
+      /* 左上角固定标题（PingFang），贴近页面边缘而非居中容器 */
+      .page-title { font-family: "PingFang SC", "PingFang TC", -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial; font-size: 28px; line-height: 1.2; text-align: left; color: #000; font-weight: 600; position: fixed; top: 12px; left: 16px; margin: 0; z-index: 10; }
+      @media (max-width: 640px) { .page-title { font-size: 24px; top: 10px; left: 12px; } }
+      /* 入场动画 + 悬停微交互 + 轻随机位移/旋转（通过 CSS 变量注入） */
+      .gallery-item { --radius: 24px; position: relative; opacity: 0; transform: translateY(12px) translate(var(--tx, 0px), var(--ty, 0px)) rotate(var(--rot, 0deg)); transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1); will-change: opacity, transform; }
+      .gallery-item.in-view { opacity: 1; transform: translateY(0) translate(var(--tx, 0px), var(--ty, 0px)) rotate(var(--rot, 0deg)); }
+      .media { transition: transform 240ms ease, box-shadow 240ms ease; }
+      @media (hover:hover) {
+        .gallery-item:hover .media { box-shadow: 0 10px 28px rgba(0,0,0,0.12); animation: wobble-rotate 900ms ease-in-out infinite; }
+      }
+      @keyframes wobble-rotate {
+        0% { transform: rotate(-1.4deg) scale(1.02); }
+        50% { transform: rotate(1.4deg) scale(1.02); }
+        100% { transform: rotate(-1.0deg) scale(1.02); }
+      }
+
+      
+      @media (hover:hover) {
+        .gallery-item:hover::before,
+        .gallery-item:hover::after { opacity: 1; animation: shake-lines 600ms ease-in-out infinite; }
+      }
+      @keyframes shake-lines {
+        0% { transform: translate(0,0) rotate(0deg); }
+        25% { transform: translate(0.6px,-0.6px) rotate(-0.6deg); }
+        50% { transform: translate(-0.6px,0.6px) rotate(0.6deg); }
+        75% { transform: translate(0.4px,-0.4px) rotate(-0.4deg); }
+        100% { transform: translate(0,0) rotate(0deg); }
+      }
+      /* 进入聚焦模式时让网格淡出但仍可见两侧 */
+      .gallery-container.dim { opacity: 0.35; transition: opacity 220ms ease; }
+      /* 首屏引导时先隐藏网格 */
+      .gallery-container.hidden { opacity: 0; transition: opacity 300ms ease; }
+
+      /* 全屏聚焦层（左右半屏为切换区域）；背景透明，使用自带渐隐背板 */
+      .lightbox { position: fixed; inset: 0; background: transparent; display: none; align-items: center; justify-content: center; z-index: 40; }
+      .lightbox.show { display: flex; }
+      .lightbox .lb-backdrop { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.78) 12%, rgba(255,255,255,0.42) 32%, rgba(255,255,255,0) 45%, rgba(255,255,255,0) 55%, rgba(255,255,255,0.42) 68%, rgba(255,255,255,0.78) 88%, rgba(255,255,255,1) 100%); }
+      #lightboxMedia { position: relative; display: flex; align-items: center; justify-content: center; }
+      .lightbox .lb-card { width: min(92vw, 1200px); max-width: 92vw; max-height: 90vh; border-radius: 24px; overflow: hidden; background: #fff; box-shadow: 0 24px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.12); will-change: transform; display: flex; align-items: center; justify-content: center; }
+      .lightbox .media { width: auto; height: auto; max-width: 92vw; max-height: 90vh; border-radius: 0; display: block; object-fit: contain; }
+      @keyframes lb-pop { to { transform: scale(1); } }
+      .lightbox .zone { position: absolute; top: 0; bottom: 0; width: 50%; cursor: pointer; }
+      .lightbox .zone.left { left: 0; }
+      .lightbox .zone.right { right: 0; }
+
+      /* 底部视图切换按钮（列表 | 堆叠） */
+      .view-switch { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; gap: 10px; z-index: 50; transition: opacity 160ms ease; }
+      .view-switch .btn { width: 44px; height: 44px; border-radius: 999px; background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.08); display: grid; place-items: center; cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+      .view-switch .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.12); }
+      .view-switch .btn.active { background: #111; color: #fff; }
+      .view-switch svg { width: 22px; height: 22px; display: block; }
+      /* 放大模式时隐藏切换按钮 */
+      .lightbox-open .view-switch { opacity: 0; pointer-events: none; }
+
+      /* 堆叠模式下：使用计算得到的位移与旋转叠放 */
+      .gallery-item.stacked { transform: translate(var(--toX, 0px), var(--toY, 0px)) rotate(var(--stackR, 0deg)); transition: transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+      .gallery-item.stacked .media { box-shadow: var(--stackShadow, 0 6px 18px rgba(0,0,0,0.16)); }
+    </style>
+  </head>
+  <body>
+    <main class="gallery-container hidden">
+      <div id="grid" class="gallery-grid"></div>
+    </main>
+
+    <!-- 聚焦层：无文案与按钮，仅左右切换区域 -->
+    <div id="lightbox" class="lightbox" aria-hidden="true">
+      <div class="lb-backdrop"></div>
+      <div id="lightboxMedia"></div>
+      <div id="zoneLeft" class="zone left"></div>
+      <div id="zoneRight" class="zone right"></div>
+    </div>
+
+    <!-- 视图切换：列表 / 堆叠 -->
+    <div class="view-switch" aria-label="view switch">
+      <button id="btnGrid" class="btn active" aria-label="列表" title="列表">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/></svg>
+      </button>
+      <button id="btnStack" class="btn" aria-label="堆叠" title="堆叠">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15l8-4 8 4-8 4-8-4zm2-6l6-3 6 3-6 3-6-3zm-2 9l8 4 8-4v2l-8 4-8-4v-2z"/></svg>
+      </button>
+    </div>
+
+    <script>
+      // 入场观察器：元素进入视窗时添加 in-view
+      const inviewObserver = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            inviewObserver.unobserve(entry.target);
+          }
+        }
+      }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+
+      // 首屏引导：展示 eating-pamelo.jpeg，放大渐隐后再展示列表
+      function runSplashThenRender() {
+        const container = document.querySelector('.gallery-container');
+        const splash = document.createElement('div');
+        splash.id = 'splash';
+        splash.style.position = 'fixed';
+        splash.style.inset = '0';
+        splash.style.background = '#ffffff';
+        splash.style.display = 'flex';
+        splash.style.alignItems = 'center';
+        splash.style.justifyContent = 'center';
+        splash.style.zIndex = '60';
+        const img = document.createElement('img');
+        img.src = './models/pictures/eating-pamelo.jpeg';
+        img.alt = '';
+        img.style.width = 'min(60vw, 520px)';
+        img.style.height = 'auto';
+        splash.appendChild(img);
+        document.body.appendChild(splash);
+
+        const start = () => {
+          const anim = img.animate([
+            { transform: 'scale(1)', opacity: 1 },
+            { transform: 'scale(2)', opacity: 0 }
+          ], { duration: 1200, delay: 300, easing: 'ease', fill: 'forwards' });
+          anim.onfinish = () => {
+            splash.remove();
+            container.classList.remove('hidden');
+            loadAndRender();
+          };
+        };
+        if (img.decode) {
+          img.decode().then(start).catch(start);
+        } else {
+          img.onload = start; img.onerror = start;
+        }
+        // 最长等待兜底
+        setTimeout(() => { if (document.body.contains(splash)) start(); }, 2400);
+      }
+
+      function inferType(src, declared) {
+        if (declared) return declared;
+        const lower = String(src || '').toLowerCase();
+        if (lower.endsWith('.glb') || lower.endsWith('.gltf') || lower.endsWith('.vrm')) return 'model';
+        if (lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.ogg')) return 'video';
+        if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp') || lower.endsWith('.gif')) return 'image';
+        return 'model';
+      }
+
+      function createMediaElement(item) {
+        const kind = inferType(item.src, item.type);
+        if (kind === 'image') {
+          const img = document.createElement('img');
+          img.src = item.src;
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.className = 'media';
+          return img;
+        }
+        if (kind === 'video') {
+          const video = document.createElement('video');
+          video.src = item.src;
+          video.autoplay = true;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          video.preload = 'metadata';
+          video.className = 'media';
+          return video;
+        }
+        const mv = document.createElement('model-viewer');
+        mv.setAttribute('src', item.src);
+        // 极简：不提供任何交互控件
+        mv.setAttribute('shadow-intensity', '0.6');
+        mv.setAttribute('exposure', '1.0');
+        mv.className = 'media';
+        return mv;
+      }
+
+      let currentList = [];
+      let currentIndex = -1; // 聚焦中的索引（针对 currentList）
+      let viewMode = 'grid';
+      let __allowToGrid = false; // 仅当显式点击按钮时允许回到列表
+      let stackOrder = null; // 堆叠顺序（0 顶部）
+
+      function openLightbox(index, fromRect) {
+        if (viewMode === 'stack') return; // 堆叠模式下禁止进入放大
+        if (index < 0 || index >= currentList.length) return;
+        currentIndex = index;
+        const lb = document.getElementById('lightbox');
+        const host = document.getElementById('lightboxMedia');
+        host.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'lb-card';
+        const el = createMediaElement(currentList[currentIndex]);
+        card.appendChild(el);
+        host.appendChild(card);
+        document.querySelector('.gallery-container')?.classList.add('dim');
+        lb.classList.add('show');
+        document.documentElement.classList.add('lightbox-open');
+
+        // FLIP 动画：从原卡片位置到居中
+        try {
+          const finalRect = card.getBoundingClientRect();
+          const dx = (fromRect.left + fromRect.width / 2) - (finalRect.left + finalRect.width / 2);
+          const dy = (fromRect.top + fromRect.height / 2) - (finalRect.top + finalRect.height / 2);
+          const sx = fromRect.width / finalRect.width;
+          const sy = fromRect.height / finalRect.height;
+          card.animate([
+            { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
+            { transform: 'translate(0, 0) scale(1, 1)' }
+          ], { duration: 280, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'both' });
+        } catch {}
+      }
+
+      function closeLightbox() {
+        currentIndex = -1;
+        const lb = document.getElementById('lightbox');
+        lb.classList.remove('show');
+        document.querySelector('.gallery-container')?.classList.remove('dim');
+        document.documentElement.classList.remove('lightbox-open');
+      }
+
+      function nav(delta) {
+        if (currentIndex === -1) return;
+        const host = document.getElementById('lightboxMedia');
+        const card = host.querySelector('.lb-card');
+        if (!card) return;
+        const rect = card.getBoundingClientRect();
+        const shift = rect.width / 3; // 1/3 卡片宽度
+        const direction = delta > 0 ? -1 : 1; // 下一张向左，上一张向右
+
+        // 准备下一张卡片元素（与当前卡片并存，实现同时进出）
+        const nextIndex = (currentIndex + delta + currentList.length) % currentList.length;
+        const nextEl = createMediaElement(currentList[nextIndex]);
+        const nextCard = document.createElement('div');
+        nextCard.className = 'lb-card';
+        nextCard.style.position = 'absolute';
+        nextCard.style.left = '50%';
+        nextCard.style.top = '50%';
+        nextCard.style.transform = `translate(calc(-50% + ${-shift * direction}px), -50%)`;
+        nextCard.style.opacity = '0';
+        nextCard.appendChild(nextEl);
+        host.appendChild(nextCard);
+
+        // 同时进行：当前滑出 + 下一张滑入
+        const animIn = nextCard.animate([
+          { transform: `translate(calc(-50% + ${-shift * direction}px), -50%)`, opacity: 0 },
+          { transform: 'translate(-50%, -50%)', opacity: 1 }
+        ], { duration: 280, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'forwards' });
+
+        const animOut = card.animate([
+          { transform: 'translateX(0px)', opacity: 1 },
+          { transform: `translateX(${shift * direction}px)`, opacity: 0 }
+        ], { duration: 280, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'forwards' });
+
+        Promise.all([animIn.finished, animOut.finished]).then(() => {
+          host.innerHTML = '';
+          const wrapper = document.createElement('div');
+          wrapper.className = 'lb-card';
+          wrapper.appendChild(nextEl);
+          host.appendChild(wrapper);
+          currentIndex = nextIndex;
+        });
+      }
+
+      function updateButtons() {
+        document.getElementById('btnGrid').classList.toggle('active', viewMode === 'grid');
+        document.getElementById('btnStack').classList.toggle('active', viewMode === 'stack');
+      }
+
+      function toStack(reuseOrder = false) {
+        const grid = document.getElementById('grid');
+        const items = Array.from(grid.children);
+        if (!items.length) return;
+        const gridRect = grid.getBoundingClientRect();
+        const centerX = gridRect.left + gridRect.width / 2;
+        const centerY = gridRect.top + gridRect.height / 2;
+        const n = items.length;
+        if (!reuseOrder || !Array.isArray(stackOrder) || stackOrder.length !== n) {
+          const start = Math.floor(Math.random() * n);
+          const indices = [...Array(n).keys()];
+          stackOrder = indices.slice(start).concat(indices.slice(0, start)); // 0 为顶部
+        }
+        items.forEach((wrap, i) => {
+          const layer = stackOrder.indexOf(i); // 0 顶部
+          if (!reuseOrder) {
+            const rect = wrap.getBoundingClientRect();
+            const dx = centerX - (rect.left + rect.width / 2);
+            const dy = centerY - (rect.top + rect.height / 2);
+            const jitterX = (Math.random() - 0.5) * 6; // 轻微错位
+            const offsetY = layer * 4; // 层叠可见
+            const rot = ((Math.random() - 0.5) * 18).toFixed(2) + 'deg';
+            wrap.style.setProperty('--toX', dx + jitterX + 'px');
+            wrap.style.setProperty('--toY', dy + offsetY + 'px');
+            wrap.style.setProperty('--stackR', rot);
+            const shadow = `0 ${6 + layer * 3}px ${18 + layer * 4}px rgba(0,0,0,${Math.max(0.06, 0.18 - layer * 0.02)})`;
+            wrap.style.setProperty('--stackShadow', shadow);
+          }
+          // 仅更新层级，保持原有位姿不变
+          wrap.style.zIndex = String(1000 + (n - layer));
+          wrap.classList.add('stacked');
+        });
+        viewMode = 'stack';
+        updateButtons();
+        // 阈值滚动：首次进入必滚动；后续仅当偏差超过阈值时再滚动，避免轻微抖动
+        const CENTER_THRESHOLD_PX = 48;
+        setTimeout(() => {
+          const topIdx = stackOrder[0];
+          const topEl = items[topIdx];
+          if (!topEl) return;
+          const r = topEl.getBoundingClientRect();
+          const center = r.top + r.height / 2;
+          const targetY = window.innerHeight / 2;
+          const delta = center - targetY;
+          if (!reuseOrder || Math.abs(delta) > CENTER_THRESHOLD_PX) {
+            const desired = window.scrollY + delta;
+            window.scrollTo({ top: desired, behavior: 'smooth' });
+          }
+        }, 200);
+      }
+
+      function toGrid() {
+        if (!__allowToGrid && viewMode === 'stack') return; // 防止意外回到列表
+        const grid = document.getElementById('grid');
+        const items = Array.from(grid.children);
+        items.forEach((wrap) => {
+          wrap.classList.remove('stacked');
+          wrap.style.removeProperty('--toX');
+          wrap.style.removeProperty('--toY');
+          wrap.style.removeProperty('--stackR');
+          wrap.style.removeProperty('z-index');
+        });
+        viewMode = 'grid';
+        updateButtons();
+      }
+
+      // 堆叠模式：点击任意处，顶部卡片朝点击方向滑出并随机下一张
+      function handleStackClick(event) {
+        if (viewMode !== 'stack') return;
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox.classList.contains('show')) return;
+        if (event.target.closest('.view-switch')) return;
+        const grid = document.getElementById('grid');
+        const items = Array.from(grid.children);
+        if (!items.length || !Array.isArray(stackOrder) || !stackOrder.length) return;
+        const topIdx = stackOrder[0];
+        const topEl = items[topIdx];
+        if (!topEl) return;
+
+        // 计算点击方向
+        const r = topEl.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dx = (event.clientX ?? cx) - cx;
+        const dy = (event.clientY ?? cy) - cy;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = dx / len, ny = dy / len;
+        const travel = Math.max(window.innerWidth, window.innerHeight) * 0.9;
+
+        // 创建临时“幽灵”卡片，从当前位置飞出
+        const ghost = topEl.cloneNode(true);
+        ghost.style.position = 'fixed';
+        ghost.style.left = r.left + 'px';
+        ghost.style.top = r.top + 'px';
+        ghost.style.width = r.width + 'px';
+        ghost.style.height = r.height + 'px';
+        ghost.style.margin = '0';
+        ghost.style.transform = 'translate(0,0)';
+        ghost.style.zIndex = '9999';
+        document.body.appendChild(ghost);
+
+        // 隐藏原顶部卡片（避免双影）
+        topEl.style.opacity = '0';
+
+        const spin = (nx * 24 - ny * 24).toFixed(1); // 根据方向给不同旋转
+        const anim = ghost.animate([
+          { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+          { transform: `translate(${nx * travel}px, ${ny * travel}px) rotate(${spin}deg)`, opacity: 0 }
+        ], { duration: 520, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'forwards' });
+
+        anim.onfinish = () => {
+          ghost.remove();
+          // 恢复透明度（位置会在 toStack() 中重算）
+          topEl.style.opacity = '';
+          // 顺序推进：把当前顶部移到队尾，下一张成为新顶部
+          if (stackOrder.length > 1) {
+            stackOrder = stackOrder.slice(1).concat(stackOrder[0]);
+          }
+          toStack(true);
+        };
+
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      }
+
+      async function loadAndRender() {
+        try {
+          const res = await fetch('./models/manifest.json', { cache: 'no-cache' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const list = Array.isArray(data.models) ? data.models.slice().reverse() : [];
+          const grid = document.getElementById('grid');
+          grid.innerHTML = '';
+          for (const item of list) {
+            const wrap = document.createElement('div');
+            wrap.className = 'gallery-item';
+            // 轻随机位移/旋转：±2px 位移，±0.8° 旋转
+            const rot = (Math.random() - 0.5) * 1.6; // -0.8° ~ 0.8°
+            const tx = (Math.random() - 0.5) * 4;   // -2px ~ 2px
+            const ty = (Math.random() - 0.5) * 4;   // -2px ~ 2px
+            wrap.style.setProperty('--rot', rot.toFixed(2) + 'deg');
+            wrap.style.setProperty('--tx', tx.toFixed(1) + 'px');
+            wrap.style.setProperty('--ty', ty.toFixed(1) + 'px');
+            const el = createMediaElement(item);
+            wrap.appendChild(el);
+            grid.appendChild(wrap);
+            inviewObserver.observe(wrap);
+
+            // 点击进入放大，仅在列表模式下有效
+            wrap.addEventListener('click', () => {
+              if (viewMode === 'stack') return;
+              const index = Array.from(grid.children).indexOf(wrap);
+              currentList = list; // 与网格顺序一致
+              const rect = wrap.getBoundingClientRect();
+              openLightbox(index, rect);
+            });
+          }
+          // 绑定按钮事件
+          document.getElementById('btnGrid').onclick = () => { __allowToGrid = true; toGrid(); setTimeout(() => { __allowToGrid = false; }, 0); };
+          document.getElementById('btnStack').onclick = () => { if (viewMode === 'stack') return; toStack(false); };
+          // 全局点击用于堆叠模式顶部卡片滑出
+          if (!window.__stackClickBound) {
+            document.addEventListener('click', handleStackClick);
+            window.__stackClickBound = true;
+          }
+        } catch (e) {
+          // 静默失败（极简页面不显示文案）
+        }
+      }
+      // 先跑首屏引导，再加载列表
+      runSplashThenRender();
+
+      // 左右点击区域与手势
+      const zoneLeft = document.getElementById('zoneLeft');
+      const zoneRight = document.getElementById('zoneRight');
+      const lightbox = document.getElementById('lightbox');
+      zoneLeft.addEventListener('click', () => nav(-1));
+      zoneRight.addEventListener('click', () => nav(1));
+      document.addEventListener('keydown', (e) => {
+        if (!lightbox.classList.contains('show')) return;
+        if (e.key === 'ArrowLeft') nav(-1);
+        if (e.key === 'ArrowRight') nav(1);
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      // 触摸滑动
+      let touchX = 0, touchY = 0;
+      lightbox.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        touchX = t.clientX; touchY = t.clientY;
+      }, { passive: true });
+      lightbox.addEventListener('touchend', (e) => {
+        const t = e.changedTouches[0];
+        const dx = t.clientX - touchX; const dy = t.clientY - touchY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          if (dx > 0) nav(-1); else nav(1);
+        }
+      });
+    </script>
+  </body>
+</html>
+
+

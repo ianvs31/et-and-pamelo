@@ -1,0 +1,18 @@
+{
+  "models": [
+    { "id": "brotherhood", "type": "image", "src": "./models/pictures/brotherhood.jpeg" },
+    { "id": "cheif", "type": "image", "src": "./models/pictures/cheif.jpeg" },
+    { "id": "eating-pamelo", "type": "image", "src": "./models/pictures/eating-pamelo.jpeg" },
+    { "id": "et", "type": "image", "src": "./models/pictures/et.jpeg" },
+    { "id": "fisherman", "type": "image", "src": "./models/pictures/fisherman.jpeg" },
+    { "id": "floating-et", "type": "image", "src": "./models/pictures/floating-et.jpeg" },
+    { "id": "kneel", "type": "image", "src": "./models/pictures/kneel.jpeg" },
+    { "id": "licking-pamelo", "type": "image", "src": "./models/pictures/licking-pamelo.jpeg" },
+    { "id": "maid-et", "type": "image", "src": "./models/pictures/maid-et.jpeg" },
+    { "id": "mcdownload", "type": "image", "src": "./models/pictures/mcdownload.jpeg" },
+    { "id": "pamelo", "type": "image", "src": "./models/pictures/pamelo.png" },
+    { "id": "unhappy-et", "type": "image", "src": "./models/pictures/unhappy et.jpeg" }
+  ]
+}
+
+

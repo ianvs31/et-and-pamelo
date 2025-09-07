@@ -1,0 +1,46 @@
+/* 极简白底三列网格，仅模型展示 */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  color: #000000;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+.gallery-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  gap: 24px;
+  justify-items: center;
+}
+
+@media (max-width: 1024px) {
+  .gallery-grid { grid-template-columns: repeat(2, minmax(240px, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .gallery-grid { grid-template-columns: 1fr; }
+}
+
+.gallery-item {
+  width: 100%;
+}
+
+.gallery-item model-viewer {
+  width: 100%;
+  height: 360px;
+  background: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .gallery-item model-viewer { height: 260px; }
+}
+
+
