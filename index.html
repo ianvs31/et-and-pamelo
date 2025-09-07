@@ -460,7 +460,7 @@
         if (e.key === 'Escape') closeLightbox();
       });
 
-      // 触摸滑动
+      // 触摸滑动：左右切换；上下（向下）关闭
       let touchX = 0, touchY = 0;
       lightbox.addEventListener('touchstart', (e) => {
         const t = e.touches[0];
@@ -469,8 +469,15 @@
       lightbox.addEventListener('touchend', (e) => {
         const t = e.changedTouches[0];
         const dx = t.clientX - touchX; const dy = t.clientY - touchY;
-        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        const absX = Math.abs(dx), absY = Math.abs(dy);
+        // 水平优先：切换
+        if (absX > 40 && absX > absY) {
           if (dx > 0) nav(-1); else nav(1);
+          return;
+        }
+        // 垂直下滑：关闭
+        if (absY > 60 && absY > absX && dy > 0) {
+          closeLightbox();
         }
       });
     </script>
