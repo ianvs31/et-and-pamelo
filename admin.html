@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin · E.T. and Pamelo</title>
+    <style>
+      body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; padding: 24px; background: #fafafa; color: #111; }
+      .panel { max-width: 880px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+      .row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; margin: 10px 0; }
+      input[type="text"], input[type="password"] { width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; }
+      input[type="file"] { padding: 6px 0; }
+      button { padding: 10px 14px; border-radius: 10px; border: 1px solid #e5e7eb; background: #111; color: #fff; cursor: pointer; }
+      button[disabled] { opacity: .6; cursor: not-allowed; }
+      .hint { color: #6b7280; font-size: 12px; }
+      .log { white-space: pre-wrap; background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 12px; font-size: 12px; }
+      .preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; }
+      .preview-item { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
+      .preview-item img { width: 100%; height: 120px; object-fit: cover; display: block; }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1 style="margin:6px 0 12px">极简上传（GitHub）</h1>
+
+      <div class="row"><label>GitHub 仓库</label><input id="repo" type="text" placeholder="例如 ianvs31/et-and-pamelo"></div>
+      <div class="row"><label>分支</label><input id="branch" type="text" value="main"></div>
+      <div class="row"><label>GitHub Token</label><input id="token" type="password" placeholder="repo 范围的经典 token"></div>
+      <div class="row"><label>Vercel Deploy Hook</label><input id="hook" type="text" placeholder="可选，填了会自动触发部署"></div>
+      <div class="row"><label>选择文件</label><input id="files" type="file" accept="image/*,.glb,.gltf,.mp4,.webm" multiple></div>
+
+      <div id="preview" class="preview"></div>
+
+      <div class="row"><div></div><button id="startBtn">上传并更新 manifest.json</button></div>
+      <p class="hint">说明：文件将提交到仓库的 <code>models/pictures/</code>，并在 <code>models/manifest.json</code> 追加条目；如填写了 Deploy Hook，会在成功后自动触发 Vercel 发布。</p>
+      <div id="log" class="log" style="margin-top:12px; height: 200px; overflow:auto"></div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const log = (m) => { const box = $('log'); box.textContent += String(m) + "\n"; box.scrollTop = box.scrollHeight; };
+
+      const filesInput = $('files');
+      const preview = $('preview');
+      filesInput.addEventListener('change', () => {
+        preview.innerHTML = '';
+        Array.from(filesInput.files || []).forEach(f => {
+          const div = document.createElement('div');
+          div.className = 'preview-item';
+          if (f.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(f);
+            div.appendChild(img);
+          } else {
+            div.textContent = f.name;
+          }
+          preview.appendChild(div);
+        });
+      });
+
+      async function githubRequest(token, method, url, body) {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' },
+          body: body ? JSON.stringify(body) : undefined
+        });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
+        return res.json();
+      }
+
+      async function uploadFile(token, repo, branch, path, file) {
+        const contentBase64 = await file.arrayBuffer().then(buf => btoa(String.fromCharCode(...new Uint8Array(buf))));
+        const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+        log(`上传 ${path}`);
+        return githubRequest(token, 'PUT', url, { message: `upload ${path}`, content: contentBase64, branch });
+      }
+
+      async function getManifest(token, repo, branch) {
+        const url = `https://api.github.com/repos/${repo}/contents/models/manifest.json?ref=${branch}`;
+        const meta = await githubRequest(token, 'GET', url);
+        const content = atob(meta.content.replace(/\n/g, ''));
+        return { json: JSON.parse(content), sha: meta.sha };
+      }
+
+      async function updateManifest(token, repo, branch, sha, json) {
+        const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(json, null, 2))));
+        const url = `https://api.github.com/repos/${repo}/contents/models/manifest.json`;
+        log('更新 manifest.json');
+        return githubRequest(token, 'PUT', url, { message: 'update manifest.json', content: contentBase64, branch, sha });
+      }
+
+      function inferTypeByName(name) {
+        const lower = name.toLowerCase();
+        if (/(\.glb|\.gltf|\.vrm)$/.test(lower)) return 'model';
+        if (/(\.mp4|\.webm|\.ogg)$/.test(lower)) return 'video';
+        return 'image';
+      }
+
+      $('startBtn').addEventListener('click', async () => {
+        try {
+          const repo = $('repo').value.trim();
+          const branch = $('branch').value.trim() || 'main';
+          const token = $('token').value.trim();
+          const hook = $('hook').value.trim();
+          const files = Array.from(filesInput.files || []);
+          if (!repo || !token || files.length === 0) { alert('请填写仓库、Token 并选择文件'); return; }
+
+          $('startBtn').disabled = true;
+          const base = 'models/pictures/';
+
+          // 读取/准备 manifest
+          let manifest, sha;
+          try {
+            const m = await getManifest(token, repo, branch);
+            manifest = m.json; sha = m.sha;
+          } catch (e) {
+            log('未找到 manifest.json，将创建新文件');
+            manifest = { models: [] };
+            sha = undefined;
+          }
+
+          // 上传所有文件
+          for (const f of files) {
+            const safeName = f.name.replace(/\s+/g, ' '); // 保持空格，但避免奇怪字符
+            const path = base + safeName;
+            await uploadFile(token, repo, branch, path, f);
+            const id = safeName.replace(/\.[^.]+$/, '').replace(/\s+/g, '-');
+            manifest.models.push({ id, type: inferTypeByName(safeName), src: `./models/pictures/${safeName}` });
+          }
+
+          await updateManifest(token, repo, branch, sha, manifest);
+          log('manifest.json 已更新');
+
+          if (hook) {
+            log('触发 Vercel Deploy Hook');
+            try { await fetch(hook, { method: 'POST' }); log('已触发部署'); } catch { log('触发部署失败'); }
+          }
+
+          alert('完成');
+        } catch (e) {
+          console.error(e); log('失败: ' + e.message);
+          alert('失败：' + e.message);
+        } finally {
+          $('startBtn').disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
+
+
