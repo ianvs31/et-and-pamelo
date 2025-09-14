@@ -1,7 +1,7 @@
 // Vercel Serverless Function
 // 环境变量：GITHUB_TOKEN, ADMIN_SECRET, GITHUB_REPO(如 ianvs31/et-and-pamelo), GITHUB_BRANCH(main)
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
     const adminSecret = req.headers['x-admin-secret'] || '';
