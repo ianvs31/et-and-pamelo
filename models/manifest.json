@@ -1,21 +1,84 @@
 {
   "models": [
-    { "id": "brotherhood", "type": "image", "src": "./models/pictures/brotherhood.jpeg" },
-    { "id": "cheif", "type": "image", "src": "./models/pictures/cheif.jpeg" },
-    { "id": "eating-pamelo", "type": "image", "src": "./models/pictures/eating-pamelo.jpeg" },
-    { "id": "et", "type": "image", "src": "./models/pictures/et.jpeg" },
-    { "id": "fisherman", "type": "image", "src": "./models/pictures/fisherman.jpeg" },
-    { "id": "floating-et", "type": "image", "src": "./models/pictures/floating-et.jpeg" },
-    { "id": "kneel", "type": "image", "src": "./models/pictures/kneel.jpeg" },
-    { "id": "licking-pamelo", "type": "image", "src": "./models/pictures/licking-pamelo.jpeg" },
-    { "id": "maid-et", "type": "image", "src": "./models/pictures/maid-et.jpeg" },
-    { "id": "mcdownload", "type": "image", "src": "./models/pictures/mcdownload.jpeg" },
-    { "id": "pamelo", "type": "image", "src": "./models/pictures/pamelo.png" },
-    { "id": "unhappy-et", "type": "image", "src": "./models/pictures/unhappy et.jpeg" },
-    { "id": "et-in-the-chair", "type": "image", "src": "./models/pictures/et-in-the-chair.png" },
-    { "id": "et-and-pomelo", "type": "image", "src": "./models/pictures/cat-in-basin.png" },
-    { "id": "et-and-pomelo", "type": "image", "src": "./models/pictures/devil.png" }
+    {
+      "id": "brotherhood",
+      "type": "image",
+      "src": "./models/pictures/brotherhood.jpeg"
+    },
+    {
+      "id": "cheif",
+      "type": "image",
+      "src": "./models/pictures/cheif.jpeg"
+    },
+    {
+      "id": "eating-pamelo",
+      "type": "image",
+      "src": "./models/pictures/eating-pamelo.jpeg"
+    },
+    {
+      "id": "et",
+      "type": "image",
+      "src": "./models/pictures/et.jpeg"
+    },
+    {
+      "id": "fisherman",
+      "type": "image",
+      "src": "./models/pictures/fisherman.jpeg"
+    },
+    {
+      "id": "floating-et",
+      "type": "image",
+      "src": "./models/pictures/floating-et.jpeg"
+    },
+    {
+      "id": "kneel",
+      "type": "image",
+      "src": "./models/pictures/kneel.jpeg"
+    },
+    {
+      "id": "licking-pamelo",
+      "type": "image",
+      "src": "./models/pictures/licking-pamelo.jpeg"
+    },
+    {
+      "id": "maid-et",
+      "type": "image",
+      "src": "./models/pictures/maid-et.jpeg"
+    },
+    {
+      "id": "mcdownload",
+      "type": "image",
+      "src": "./models/pictures/mcdownload.jpeg"
+    },
+    {
+      "id": "pamelo",
+      "type": "image",
+      "src": "./models/pictures/pamelo.png"
+    },
+    {
+      "id": "unhappy-et",
+      "type": "image",
+      "src": "./models/pictures/unhappy et.jpeg"
+    },
+    {
+      "id": "et-in-the-chair",
+      "type": "image",
+      "src": "./models/pictures/et-in-the-chair.png"
+    },
+    {
+      "id": "et-and-pomelo",
+      "type": "image",
+      "src": "./models/pictures/cat-in-basin.png"
+    },
+    {
+      "id": "et-and-pomelo",
+      "type": "image",
+      "src": "./models/pictures/devil.png"
+    },
+    {
+      "id": "generated-image-september-14-2025---8_48pm",
+      "type": "image",
+      "src": "./models/pictures/Generated Image September 14, 2025 - 8_48PM.png"
+    }
   ]
 }
-
-
