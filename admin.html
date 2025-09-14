@@ -73,6 +73,11 @@
           const contentBase64 = await toBase64(file);
           const ext = file.name.split('.').pop();
           const res = await fetch('/api/upload', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ id, type, filename: file.name, ext, contentBase64 }) });
+          const ct = res.headers.get('content-type') || '';
+          if (!ct.includes('application/json')) {
+            const txt = await res.text();
+            throw new Error('接口未返回 JSON，可能是路由未生效或域名未指向该项目。\n返回片段：'+ txt.slice(0,80));
+          }
           const data = await res.json();
           if(!res.ok){ throw new Error(data.error||'上传失败'); }
           msg.textContent = '成功：已提交到 GitHub，等待 Vercel 自动部署。\nCommit: '+(data.commitUrl||'');
