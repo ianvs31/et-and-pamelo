@@ -73,8 +73,10 @@
           const contentBase64 = await toBase64(file);
           const ext = file.name.split('.').pop();
           const res = await fetch('/api/upload', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ id, type, filename: file.name, ext, contentBase64 }) });
-          const data = await res.json();
-          if(!res.ok){ throw new Error(data.error||'上传失败'); }
+          const text = await res.text();
+          let data = null;
+          try { data = JSON.parse(text); } catch { /* not json */ }
+          if(!res.ok || !data?.ok){ throw new Error(data?.error || text || '上传失败'); }
           msg.textContent = '成功：已提交到 GitHub，等待 Vercel 自动部署。\nCommit: '+(data.commitUrl||'');
           msg.className='ok';
         }catch(err){ msg.textContent='失败：'+err.message; msg.className='err'; }
