@@ -1,4 +1,4 @@
-# 度假猫 3D 展示站（MVP）
+# et-and-pamelo（MVP）
 
 使用 `<model-viewer>` 的静态网页，在线预览与下载 `.glb` 模型，支持可选 iOS AR（`.usdz`）。
 
