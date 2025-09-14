@@ -11,7 +11,8 @@
     { "id": "maid-et", "type": "image", "src": "./models/pictures/maid-et.jpeg" },
     { "id": "mcdownload", "type": "image", "src": "./models/pictures/mcdownload.jpeg" },
     { "id": "pamelo", "type": "image", "src": "./models/pictures/pamelo.png" },
-    { "id": "unhappy-et", "type": "image", "src": "./models/pictures/unhappy et.jpeg" }
+    { "id": "unhappy-et", "type": "image", "src": "./models/pictures/unhappy et.jpeg" },
+    { "id": "et-in-the-chair", "type": "image", "src": "./models/pictures/et-in-the-chair.png" }
   ]
 }
 
