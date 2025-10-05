@@ -96,6 +96,7 @@
       const drop = $('#drop'); const input = $('#file'); const msg = $('#msg');
       const idInput = $('#id');
       const upPreview = document.querySelector('#upPreview');
+      const typeSel = document.querySelector('#type');
       function nameToId(name){
         return name.toLowerCase().replace(/\.[^.]+$/, '').replace(/\s+/g,'-').replace(/[^a-z0-9-_]/g,'');
       }
@@ -105,6 +106,14 @@
       drop.addEventListener('drop',async e=>{e.preventDefault(); drop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ input.files=e.dataTransfer.files; idInput.value=nameToId(f.name); await renderUploadPreview(f); }});
       input.addEventListener('change',async()=>{const f=input.files?.[0]; if(f){ idInput.value=nameToId(f.name); await renderUploadPreview(f); }});
 
+      function toggleAccept(){
+        if(!input) return;
+        const t = typeSel?.value || 'image';
+        if(t === 'image') input.setAttribute('accept','image/*'); else input.removeAttribute('accept');
+      }
+      typeSel?.addEventListener('change', toggleAccept);
+      toggleAccept();
+
       async function toBase64(file){
         const buf = await file.arrayBuffer();
         let binary=''; const bytes=new Uint8Array(buf); const n=bytes.byteLength;
@@ -112,15 +121,20 @@
         return btoa(binary);
       }
 
+      function isImageFile(file){
+        if (!file) return false;
+        if (file.type && file.type.startsWith('image/')) return true;
+        const name = (file.name||'').toLowerCase();
+        return /\.(png|jpe?g|webp|gif)$/i.test(name);
+      }
+
       async function renderUploadPreview(file){
         try{
           if(!upPreview) return;
-          if(file && file.type && file.type.startsWith('image/')){
-            const reader = new FileReader();
-            const p = new Promise((resolve,reject)=>{ reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error('读取失败')); });
-            reader.readAsDataURL(file);
-            const dataUrl = await p;
-            upPreview.src = dataUrl;
+          if(isImageFile(file)){
+            const url = URL.createObjectURL(file);
+            upPreview.onload = ()=>{ try{ URL.revokeObjectURL(url); } catch{} };
+            upPreview.src = url;
             upPreview.style.display = 'block';
           }else{
             upPreview.style.display = 'none';
@@ -137,6 +151,8 @@
         const type = $('#type').value;
         const secret = $('#secret').value.trim();
         try{
+          const goBtn = document.querySelector('#go');
+          if (goBtn) { goBtn.disabled = true; goBtn.setAttribute('data-old', goBtn.textContent||''); goBtn.textContent='上传中…'; }
           const contentBase64 = await toBase64(file);
           const ext = file.name.split('.').pop();
           const res = await fetch('/api/upload', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ id, type, filename: file.name, ext, contentBase64 }) });
@@ -148,6 +164,10 @@
           msg.innerHTML = `成功：已提交到 GitHub，等待 Vercel 自动部署。${link ? `<br/>`+link : ''}${data?.commitUrl ? `<br/>Commit: <a href="${data.commitUrl}" target="_blank" rel="noreferrer">${data.commitUrl}</a>` : ''}`;
           msg.className='ok';
         }catch(err){ msg.textContent='失败：'+err.message; msg.className='err'; }
+        finally {
+          const goBtn = document.querySelector('#go');
+          if (goBtn) { const old=goBtn.getAttribute('data-old')||'上传并写入清单'; goBtn.textContent=old; goBtn.disabled=false; }
+        }
       });
 
       // ==========================
