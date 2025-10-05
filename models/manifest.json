@@ -74,6 +74,11 @@
       "id": "et-and-pomelo",
       "type": "image",
       "src": "./models/pictures/devil.png"
+    },
+    {
+      "id": "generated-image-october-05-2025---5_11pm",
+      "type": "image",
+      "src": "./models/pictures/Generated Image October 05, 2025 - 5_11PM.png"
     }
   ]
 }
