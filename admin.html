@@ -55,6 +55,11 @@
             <input id="sFile" type="file" accept="image/*" style="display:none"/>
           </div>
         </div>
+        <div class="row"><label>输入预览</label>
+          <div>
+            <img id="sPreview" alt="输入预览" style="max-width:100%; border-radius:12px; display:none;"/>
+          </div>
+        </div>
         <div class="row"><label>尺寸</label>
           <select id="sSize">
             <option value="1024x1024">1024x1024</option>
@@ -181,12 +186,14 @@
       const sGo = document.querySelector('#sGo');
       const sMsg = document.querySelector('#sMsg');
       const sResult = document.querySelector('#sResult');
+      const sPreview = document.querySelector('#sPreview');
 
       if (sDrop && sFile) {
         sDrop.addEventListener('click', ()=> sFile.click());
         sDrop.addEventListener('dragover', e=>{ e.preventDefault(); sDrop.style.background='#f8fafc'; });
         sDrop.addEventListener('dragleave', ()=>{ sDrop.style.background='#fcfcfd'; });
-        sDrop.addEventListener('drop', e=>{ e.preventDefault(); sDrop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ sFile.files=e.dataTransfer.files; } });
+        sDrop.addEventListener('drop', e=>{ e.preventDefault(); sDrop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ sFile.files=e.dataTransfer.files; renderSeedreamPreview(f); } });
+        sFile.addEventListener('change', ()=>{ const f=sFile.files?.[0]; if(f){ renderSeedreamPreview(f); } else { hideSeedreamPreview(); } });
       }
 
       function fileToDataURL(file){
@@ -197,6 +204,19 @@
           reader.readAsDataURL(file);
         });
       }
+
+      function renderSeedreamPreview(file){
+        try{
+          if(!sPreview) return;
+          if(file){
+            const url = URL.createObjectURL(file);
+            sPreview.onload = ()=>{ try{ URL.revokeObjectURL(url); } catch{} };
+            sPreview.src = url;
+            sPreview.style.display = 'block';
+          }
+        }catch{}
+      }
+      function hideSeedreamPreview(){ if(sPreview){ sPreview.style.display='none'; sPreview.removeAttribute('src'); } }
 
       if (sGo) {
         sGo.addEventListener('click', async ()=>{
@@ -236,7 +256,7 @@
 
             sResult.src = imgUrl;
             sResult.style.display = 'block';
-            sMsg.textContent = '生成成功';
+            sMsg.innerHTML = '生成成功' + (item?.url ? `：<a href="${item.url}" target="_blank" rel="noreferrer">打开链接</a>` : '');
             sMsg.className = 'ok';
             sGo.textContent = oldText; sGo.disabled=false;
           }catch(err){
