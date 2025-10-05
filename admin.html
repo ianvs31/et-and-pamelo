@@ -51,13 +51,11 @@
       <h1 style="margin-top:24px;">Seedream 图生图（上传宠物照片并生成）</h1>
       <div class="panel">
         <div class="row"><label>提示词</label><input id="sPrompt" placeholder="例如：把我的宠物变成科幻宇航员"/></div>
-        <div class="row"><label>模型/Endpoint ID</label><input id="sModel" placeholder="如 doubao-seedream-4-0-250828 或 ep-..."/></div>
         <div class="row"><label>图片</label>
           <div class="drop" id="sDrop">拖拽到此或点击选择
             <input id="sFile" type="file" accept="image/*" class="file-overlay"/>
           </div>
         </div>
-        <div class="row"><label>图片URL</label><input id="sImageUrl" placeholder="可直接粘贴图片直链（优先使用）"/></div>
         <div class="row"><label>输入预览</label>
           <div>
             <img id="sPreview" alt="输入预览" style="max-width:100%; border-radius:12px; display:none;"/>
@@ -70,24 +68,15 @@
             <option value="hd">hd</option>
           </select>
         </div>
-        <div class="row"><label>序列生成</label>
-          <select id="sSeq">
-            <option value="disabled">disabled</option>
-            <option value="enabled">enabled</option>
-          </select>
-        </div>
-        <div class="row"><label>水印</label>
-          <select id="sWatermark">
-            <option value="true">true</option>
-            <option value="false">false</option>
-          </select>
-        </div>
         <div class="row"><label></label><button class="btn" id="sGo">一键生成</button></div>
         <div id="sMsg" class="hint"></div>
         <div class="row" style="margin-top:12px;">
           <label>结果</label>
           <div>
             <img id="sResult" alt="生成结果" style="max-width:100%; border-radius:12px; display:none;"/>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+              <button class="btn" id="sPublish" style="display:none;">展示到主页</button>
+            </div>
           </div>
         </div>
       </div>
@@ -196,10 +185,8 @@
       const sMsg = document.querySelector('#sMsg');
       const sResult = document.querySelector('#sResult');
       const sPreview = document.querySelector('#sPreview');
-      const sImageUrl = document.querySelector('#sImageUrl');
-      const sModel = document.querySelector('#sModel');
-      const sSeq = document.querySelector('#sSeq');
-      const sWatermark = document.querySelector('#sWatermark');
+      const sPublish = document.querySelector('#sPublish');
+      let lastGen = { url: '', b64: '', mime: 'image/png' };
 
       if (sDrop && sFile) {
         sDrop.addEventListener('click', ()=> sFile.click());
@@ -244,8 +231,8 @@
             sGo.disabled = true; const oldText = sGo.textContent; sGo.textContent='生成中…';
 
             const dataUrl = await fileToDataURL(file);
-            let finalImage = sImageUrl?.value?.trim() || '';
-            if (!finalImage) {
+            let finalImage = '';
+            {
               // 将本地文件临时上传到仓库，换取 URL（需要 Admin Secret）
               const secret = document.querySelector('#secret')?.value?.trim() || '';
               const fname = `seedream-${Date.now()}-${(file.name||'image').replace(/[^a-zA-Z0-9._-]/g,'_')}`;
@@ -263,22 +250,14 @@
               }catch{}
               // 回退：若临时上传失败，仍然用 base64 dataURL
               if(!finalImage) finalImage = dataUrl;
-            } else {
-              // 用户手动输入 URL：若是 GitHub（raw 或页面）链接，回退为 base64，避免上游下载超时
-              try{
-                const isGhRaw = new RegExp('^https?://raw\\.githubusercontent\\.com/','i').test(finalImage);
-                const isGh = new RegExp('^https?://(www\\.)?github\\.com/','i').test(finalImage);
-                if (isGhRaw || isGh) finalImage = dataUrl;
-              }catch{}
             }
             const payload = {
               prompt: promptVal,
               image: finalImage,
-              model: sModel?.value?.trim() || undefined,
               size: sSize?.value?.trim() || '1024x1024',
               quality: sQuality?.value || 'standard',
-              sequential_image_generation: sSeq?.value || 'disabled',
-              watermark: (sWatermark?.value === 'true'),
+              sequential_image_generation: 'disabled',
+              watermark: false,
               response_format: 'url'
             };
             const resp = await fetch('/api/seedream', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
@@ -301,11 +280,59 @@
             sResult.style.display = 'block';
             sMsg.innerHTML = '生成成功' + (item?.url ? `：<a href="${item.url}" target="_blank" rel="noreferrer">打开链接</a>` : '');
             sMsg.className = 'ok';
+            lastGen.url = item?.url || '';
+            lastGen.b64 = item?.b64_json || '';
+            lastGen.mime = (item?.url && item.url.toLowerCase().endsWith('.jpg')) ? 'image/jpeg' : 'image/png';
+            if (sPublish) sPublish.style.display = 'inline-block';
             sGo.textContent = oldText; sGo.disabled=false;
           }catch(err){
             sMsg.textContent = '失败：' + err.message;
             sMsg.className = 'err';
             sGo.disabled=false; sGo.textContent='一键生成';
+          }
+        });
+      }
+
+      async function fetchUrlToBase64(u){
+        const r = await fetch(u, { mode: 'cors' });
+        if (!r.ok) throw new Error('下载结果图失败');
+        const blob = await r.blob();
+        const b64 = await new Promise((resolve, reject)=>{
+          const fr = new FileReader();
+          fr.onload = ()=>resolve(String(fr.result||'').split(',').pop()||'');
+          fr.onerror = ()=>reject(new Error('读取结果图失败'));
+          fr.readAsDataURL(blob);
+        });
+        const mime = blob.type || 'image/png';
+        return { b64, mime };
+      }
+
+      function extFromMime(m){ if((m||'').includes('jpeg')) return 'jpg'; if((m||'').includes('png')) return 'png'; if((m||'').includes('webp')) return 'webp'; return 'png'; }
+
+      if (sPublish) {
+        sPublish.addEventListener('click', async ()=>{
+          try{
+            const secret = document.querySelector('#secret')?.value?.trim() || '';
+            if (!secret) { alert('请先在顶部输入 Admin Secret'); return; }
+            let id = prompt('请输入展示 ID（仅英文/数字/-/_）');
+            if (!id) return;
+            id = nameToId(id);
+            const type = 'image';
+            let b64 = '';
+            let mime = 'image/png';
+            if (lastGen.url) { try { const r = await fetchUrlToBase64(lastGen.url); b64=r.b64; mime=r.mime; } catch { /* 回退 */ } }
+            if (!b64 && lastGen.b64) { b64 = lastGen.b64; mime = 'image/png'; }
+            if (!b64 && sResult?.src?.startsWith('data:')) { b64 = String(sResult.src).split(',').pop(); mime = (sResult.src.match(/^data:(.*?);/)||[])[1] || 'image/png'; }
+            if (!b64) { alert('未获取到结果图片'); return; }
+            const ext = extFromMime(mime);
+            const filename = `${id}.${ext}`;
+            const res = await fetch('/api/upload', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ id, type, filename, ext, contentBase64: b64 }) });
+            const text = await res.text(); let data=null; try{ data=JSON.parse(text);}catch{}
+            if(!res.ok || !data?.ok) throw new Error(data?.error || text || '上传失败');
+            sMsg.innerHTML = `已展示：主页将在部署完成后显示。<br/>Commit: ${data?.commitUrl ? `<a href="${data.commitUrl}" target="_blank" rel="noreferrer">${data.commitUrl}</a>` : ''}`;
+            sMsg.className='ok';
+          }catch(err){
+            sMsg.textContent='失败：'+err.message; sMsg.className='err';
           }
         });
       }
