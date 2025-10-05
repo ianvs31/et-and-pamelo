@@ -263,6 +263,13 @@
               }catch{}
               // 回退：若临时上传失败，仍然用 base64 dataURL
               if(!finalImage) finalImage = dataUrl;
+            } else {
+              // 用户手动输入 URL：若是 GitHub（raw 或页面）链接，回退为 base64，避免上游下载超时
+              try{
+                const isGhRaw = new RegExp('^https?://raw\\.githubusercontent\\.com/','i').test(finalImage);
+                const isGh = new RegExp('^https?://(www\\.)?github\\.com/','i').test(finalImage);
+                if (isGhRaw || isGh) finalImage = dataUrl;
+              }catch{}
             }
             const payload = {
               prompt: promptVal,
