@@ -34,7 +34,8 @@
     {
       "id": "kneel",
       "type": "image",
-      "src": "./models/pictures/kneel.jpeg"
+      "src": "./models/pictures/kneel.jpeg",
+      "hidden": true
     },
     {
       "id": "licking-pamelo",
