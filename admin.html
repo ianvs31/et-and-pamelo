@@ -258,7 +258,7 @@
               quality: sQuality?.value || 'standard',
               sequential_image_generation: 'disabled',
               watermark: false,
-              response_format: 'url'
+              response_format: 'b64_json'
             };
             const resp = await fetch('/api/seedream', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
             const text = await resp.text();
@@ -272,13 +272,13 @@
             // 兼容返回：data[0].url 或 data[0].b64_json
             let imgUrl = '';
             const item = data?.data?.[0];
-            if(item?.url){ imgUrl = item.url; }
-            else if(item?.b64_json){ imgUrl = 'data:image/png;base64,' + item.b64_json; }
+            if(item?.b64_json){ imgUrl = 'data:image/png;base64,' + item.b64_json; }
+            else if(item?.url){ imgUrl = item.url; }
             if(!imgUrl){ throw new Error('上游无有效结果'); }
 
             sResult.src = imgUrl;
             sResult.style.display = 'block';
-            sMsg.innerHTML = '生成成功' + (item?.url ? `：<a href="${item.url}" target="_blank" rel="noreferrer">打开链接</a>` : '');
+            sMsg.innerHTML = '生成成功';
             sMsg.className = 'ok';
             lastGen.url = item?.url || '';
             lastGen.b64 = item?.b64_json || '';
