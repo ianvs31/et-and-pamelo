@@ -62,7 +62,8 @@ npx serve -l 5173 --single
   - `https://ark.cn-beijing.volces.com/api/v3/images/edits`
   - 或供应方兼容端点：`https://.../v1/images/edits` / `.../images/generations`
 - `SEEDREAM_API_KEY`：上游 API Key（作为 `Authorization: Bearer <key>`）
-- `SEEDREAM_MODEL`：模型名（默认 `seedream-4.0`）
+- `SEEDREAM_MODEL`（可选）：模型名（若未配置，将不向上游传该字段）
+- `SEEDREAM_ENDPOINT_ID`（可选）：方舟控制台的 Endpoint ID，将以 `X-Endpoint-Id` 请求头发送
 - `SEEDREAM_DEFAULT_SIZE`：默认 `1024x1024`
 - `SEEDREAM_DEFAULT_QUALITY`：默认 `standard`
 

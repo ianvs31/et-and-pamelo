@@ -13,7 +13,8 @@ export default async function handler(req, res) {
 
     const apiUrl = process.env.SEEDREAM_API_URL;
     const apiKey = process.env.SEEDREAM_API_KEY;
-    const model = process.env.SEEDREAM_MODEL || 'seedream-4.0';
+    const model = process.env.SEEDREAM_MODEL; // 可选：未配置则不传递给上游
+    const endpointId = process.env.SEEDREAM_ENDPOINT_ID; // 可选：Ark 控制台的 Endpoint ID
     const defaultSize = process.env.SEEDREAM_DEFAULT_SIZE || '1024x1024';
     const defaultQuality = process.env.SEEDREAM_DEFAULT_QUALITY || 'standard';
     if (!apiUrl || !apiKey) return res.status(500).json({ error: 'Server not configured' });
@@ -21,7 +22,7 @@ export default async function handler(req, res) {
     const isGenerations = /\/images\/generations(?:\b|\/)/i.test(String(apiUrl));
 
     // 仅支持 JSON 输入，前端以 base64（可为 dataURL 或纯 base64）传图，避免 multipart 解析复杂度
-    const { prompt, imageBase64, size, quality, response_format, user } = req.body || {};
+    const { prompt, imageBase64, size, quality, response_format, user, model: modelFromBody, image, imageUrl, sequential_image_generation, stream, watermark, n } = req.body || {};
     if (!prompt) return res.status(400).json({ error: 'Bad Request: prompt required' });
     if (!isGenerations && !imageBase64) return res.status(400).json({ error: 'Bad Request: imageBase64 required for edits endpoint' });
 
@@ -34,20 +35,31 @@ export default async function handler(req, res) {
     if (isGenerations) {
       // 文生图：以 JSON 发送（OpenAI 兼容 images/generations）
       const payload = {
-        model: String(model),
         prompt: String(prompt),
         size: String(size || defaultSize),
         quality: String(quality || defaultQuality),
-        n: 1,
+        n: Number.isInteger(n) ? n : 1,
         response_format: String(response_format || 'url')
       };
+      // 模型优先级：请求体 > 环境变量 SEEDREAM_MODEL > 环境变量 SEEDREAM_ENDPOINT_ID
+      const resolvedModel = modelFromBody || model || endpointId;
+      if (resolvedModel) payload.model = String(resolvedModel);
       if (user) payload.user = String(user);
+      // 透传可选参数：图片/序列生成/流式/水印
+      if (typeof image === 'string' && image) payload.image = image;
+      else if (typeof imageUrl === 'string' && imageUrl) payload.image = imageUrl;
+      // 一些服务商支持 base64 字段名（若不支持会忽略/报错，由上游决定）
+      if (!payload.image && typeof imageBase64 === 'string' && imageBase64) payload.image_base64 = imageBase64;
+      if (typeof sequential_image_generation !== 'undefined') payload.sequential_image_generation = sequential_image_generation;
+      if (typeof stream !== 'undefined') payload.stream = !!stream;
+      if (typeof watermark !== 'undefined') payload.watermark = !!watermark;
 
       const upstream = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(endpointId ? { 'X-Endpoint-Id': String(endpointId) } : {})
         },
         body: JSON.stringify(payload)
       });
@@ -56,7 +68,8 @@ export default async function handler(req, res) {
       let data = null;
       try { data = JSON.parse(text); } catch {}
       if (!upstream.ok) {
-        return res.status(upstream.status).json({ error: data?.error || text || 'Upstream Error' });
+        const errStr = typeof data?.error === 'string' ? data.error : (data?.error?.message || text || 'Upstream Error');
+        return res.status(upstream.status).json({ error: errStr, raw: data || text });
       }
       return res.status(200).json(data || { ok: true, raw: text });
     }
@@ -75,7 +88,7 @@ export default async function handler(req, res) {
     const filename = mime.includes('png') ? 'image.png' : (mime.includes('jpeg') || mime.includes('jpg') ? 'image.jpg' : 'image.bin');
     form.append('image', new Blob([binary], { type: mime }), filename);
     form.append('prompt', String(prompt));
-    form.append('model', String(model));
+    if (model) form.append('model', String(model));
     form.append('size', String(size || defaultSize));
     form.append('quality', String(quality || defaultQuality));
     if (response_format) form.append('response_format', String(response_format)); // e.g. url | b64_json
@@ -84,7 +97,8 @@ export default async function handler(req, res) {
     const upstream = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`
+        Authorization: `Bearer ${apiKey}`,
+        ...(endpointId ? { 'X-Endpoint-Id': String(endpointId) } : {})
       },
       body: form
     });
@@ -93,7 +107,8 @@ export default async function handler(req, res) {
     let data = null;
     try { data = JSON.parse(text); } catch { /* upstream 可能返回文本错误 */ }
     if (!upstream.ok) {
-      return res.status(upstream.status).json({ error: data?.error || text || 'Upstream Error' });
+      const errStr = typeof data?.error === 'string' ? data.error : (data?.error?.message || text || 'Upstream Error');
+      return res.status(upstream.status).json({ error: errStr, raw: data || text });
     }
 
     // 透传常见字段（OpenAI 兼容通常返回 data 数组）

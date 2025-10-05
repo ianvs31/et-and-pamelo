@@ -36,6 +36,11 @@
             <input id="file" type="file" style="display:none"/>
           </div>
         </div>
+        <div class="row"><label>预览</label>
+          <div>
+            <img id="upPreview" alt="预览" style="max-width:100%; border-radius:12px; display:none;"/>
+          </div>
+        </div>
         <div class="row"><label>生成的 ID</label><input id="id" placeholder="默认基于文件名生成，可手动修改"/></div>
         <div class="row"><label></label><button class="btn" id="go">上传并写入清单</button></div>
         <p class="hint">说明：本页会将文件（图片/视频/GLB）提交到 GitHub 仓库的 <code>models/</code> 目录，并追加到 <code>models/manifest.json</code>，提交后 Vercel 自动重新部署。</p>
@@ -90,20 +95,38 @@
       const $ = (s)=>document.querySelector(s);
       const drop = $('#drop'); const input = $('#file'); const msg = $('#msg');
       const idInput = $('#id');
+      const upPreview = document.querySelector('#upPreview');
       function nameToId(name){
         return name.toLowerCase().replace(/\.[^.]+$/, '').replace(/\s+/g,'-').replace(/[^a-z0-9-_]/g,'');
       }
       drop.addEventListener('click',()=>input.click());
       drop.addEventListener('dragover',e=>{e.preventDefault(); drop.style.background='#f8fafc';});
       drop.addEventListener('dragleave',()=>{drop.style.background='#fcfcfd';});
-      drop.addEventListener('drop',e=>{e.preventDefault(); drop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ input.files=e.dataTransfer.files; idInput.value=nameToId(f.name);} });
-      input.addEventListener('change',()=>{const f=input.files?.[0]; if(f){ idInput.value=nameToId(f.name); }});
+      drop.addEventListener('drop',async e=>{e.preventDefault(); drop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ input.files=e.dataTransfer.files; idInput.value=nameToId(f.name); await renderUploadPreview(f); }});
+      input.addEventListener('change',async()=>{const f=input.files?.[0]; if(f){ idInput.value=nameToId(f.name); await renderUploadPreview(f); }});
 
       async function toBase64(file){
         const buf = await file.arrayBuffer();
         let binary=''; const bytes=new Uint8Array(buf); const n=bytes.byteLength;
         for(let i=0;i<n;i++){ binary += String.fromCharCode(bytes[i]); }
         return btoa(binary);
+      }
+
+      async function renderUploadPreview(file){
+        try{
+          if(!upPreview) return;
+          if(file && file.type && file.type.startsWith('image/')){
+            const reader = new FileReader();
+            const p = new Promise((resolve,reject)=>{ reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error('读取失败')); });
+            reader.readAsDataURL(file);
+            const dataUrl = await p;
+            upPreview.src = dataUrl;
+            upPreview.style.display = 'block';
+          }else{
+            upPreview.style.display = 'none';
+            upPreview.removeAttribute('src');
+          }
+        }catch{ /* ignore preview errors */ }
       }
 
       $('#go').addEventListener('click', async ()=>{
@@ -121,7 +144,8 @@
           let data = null;
           try { data = JSON.parse(text); } catch { /* not json */ }
           if(!res.ok || !data?.ok){ throw new Error(data?.error || text || '上传失败'); }
-          msg.textContent = '成功：已提交到 GitHub，等待 Vercel 自动部署。\nCommit: '+(data.commitUrl||'');
+          const link = data?.src ? ` 可访问路径：${data.src}（部署完成后生效）` : '';
+          msg.innerHTML = `成功：已提交到 GitHub，等待 Vercel 自动部署。${link ? `<br/>`+link : ''}${data?.commitUrl ? `<br/>Commit: <a href="${data.commitUrl}" target="_blank" rel="noreferrer">${data.commitUrl}</a>` : ''}`;
           msg.className='ok';
         }catch(err){ msg.textContent='失败：'+err.message; msg.className='err'; }
       });
@@ -177,7 +201,11 @@
             const resp = await fetch('/api/seedream', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
             const text = await resp.text();
             let data=null; try{ data = JSON.parse(text); } catch{}
-            if(!resp.ok){ throw new Error(data?.error || text || '生成失败'); }
+            if(!resp.ok){
+              const errStr = (typeof data?.error==='string') ? data.error : (data?.error?.message || text || '生成失败');
+              // 附带上游返回，便于诊断
+              throw new Error(errStr + (data?.raw ? (' | raw='+JSON.stringify(data.raw).slice(0,600)) : ''));
+            }
 
             // 兼容返回：data[0].url 或 data[0].b64_json
             let imgUrl = '';
