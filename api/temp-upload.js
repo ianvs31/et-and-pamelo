@@ -31,8 +31,10 @@ export default async function handler(req, res) {
       const t = await putFile.text();
       return res.status(500).json({ error: `upload failed: ${t}` });
     }
-    const fileUrl = `./models/tmp/${filename}`;
-    return res.status(200).json({ ok: true, url: fileUrl });
+    const upJson = await putFile.json();
+    const fileUrl = `./models/tmp/${filename}`; // 站内相对路径（需部署完成才可访问）
+    const downloadUrl = upJson?.content?.download_url || null; // GitHub 原始文件绝对地址（公开仓库可立即访问）
+    return res.status(200).json({ ok: true, url: fileUrl, download_url: downloadUrl });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
