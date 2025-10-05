@@ -41,18 +41,23 @@ export default async function handler(req, res) {
         n: Number.isInteger(n) ? n : 1,
         response_format: String(response_format || 'url')
       };
-      // 模型优先级：请求体 > 环境变量 SEEDREAM_MODEL > 环境变量 SEEDREAM_ENDPOINT_ID
-      const resolvedModel = modelFromBody || model || endpointId;
+      // 模型优先级：请求体 > Endpoint ID > SEEDREAM_MODEL（按你的要求优先使用 Endpoint ID）
+      const resolvedModel = modelFromBody || endpointId || model;
       if (resolvedModel) payload.model = String(resolvedModel);
       if (user) payload.user = String(user);
       // 透传可选参数：图片/序列生成/流式/水印
-      if (typeof image === 'string' && image) payload.image = image;
-      else if (typeof imageUrl === 'string' && imageUrl) payload.image = imageUrl;
-      // 一些服务商支持 base64 字段名（若不支持会忽略/报错，由上游决定）
-      if (!payload.image && typeof imageBase64 === 'string' && imageBase64) payload.image_base64 = imageBase64;
+      // 按文档对齐：优先使用 URL，其次使用 base64，但统一放在 image 字段
+      if (typeof image === 'string' && image) {
+        payload.image = image;
+      } else if (typeof imageUrl === 'string' && imageUrl) {
+        payload.image = imageUrl;
+      } else if (typeof imageBase64 === 'string' && imageBase64) {
+        payload.image = imageBase64; // 基于 dataURL/base64
+      }
       if (typeof sequential_image_generation !== 'undefined') payload.sequential_image_generation = sequential_image_generation;
       if (typeof stream !== 'undefined') payload.stream = !!stream;
-      if (typeof watermark !== 'undefined') payload.watermark = !!watermark;
+      // 默认关闭水印（未提供时按 false 处理）
+      payload.watermark = (typeof watermark === 'undefined') ? false : !!watermark;
 
       const upstream = await fetch(apiUrl, {
         method: 'POST',

@@ -1,0 +1,25 @@
+#!/bin/zsh
+
+# 使用前请在当前 shell 设置 API 令牌：
+#   export ARK_API_KEY="你的密钥"
+# 不要把密钥写进文件。
+
+if [[ -z "$ARK_API_KEY" ]]; then
+  echo "[错误] 未设置 ARK_API_KEY 环境变量" 1>&2
+  echo "用法: export ARK_API_KEY=\"your_token\" 然后重新运行此脚本" 1>&2
+  exit 1
+fi
+
+curl -sS -X POST https://ark.cn-beijing.volces.com/api/v3/images/generations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${ARK_API_KEY}" \
+  -d '{
+    "model": "doubao-seedream-4-0-250828",
+    "prompt": "生成狗狗趴在草地上的近景画面",
+    "image": "https://ark-project.tos-cn-beijing.volces.com/doc_image/seedream4_imageToimage.png",
+    "size": "2K",
+    "sequential_image_generation": "disabled",
+    "stream": false,
+    "response_format": "url",
+    "watermark": false
+  }'

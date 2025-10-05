@@ -243,11 +243,23 @@
             sGo.disabled = true; const oldText = sGo.textContent; sGo.textContent='生成中…';
 
             const dataUrl = await fileToDataURL(file);
+            let finalImage = sImageUrl?.value?.trim() || '';
+            if (!finalImage) {
+              // 将本地文件临时上传到仓库，换取 URL（需要 Admin Secret）
+              const secret = document.querySelector('#secret')?.value?.trim() || '';
+              const fname = `seedream-${Date.now()}-${(file.name||'image').replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+              const contentBase64 = String(dataUrl).split(',').pop();
+              try{
+                const up = await fetch('/api/temp-upload', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ filename: fname, contentBase64 }) });
+                const ut = await up.text(); let uj=null; try{ uj=JSON.parse(ut); }catch{}
+                if(up.ok && uj?.ok && uj?.url){ finalImage = uj.url; }
+              }catch{}
+              // 回退：若临时上传失败，仍然用 base64 dataURL
+              if(!finalImage) finalImage = dataUrl;
+            }
             const payload = {
               prompt: promptVal,
-              // 与示例一致：优先 URL；若无 URL 则用 base64
-              image: (sImageUrl?.value?.trim()) || undefined,
-              imageBase64: (!sImageUrl?.value?.trim()) ? dataUrl : undefined,
+              image: finalImage,
               model: sModel?.value?.trim() || undefined,
               size: sSize?.value?.trim() || '1024x1024',
               quality: sQuality?.value || 'standard',
