@@ -41,6 +41,50 @@
         <p class="hint">说明：本页会将文件（图片/视频/GLB）提交到 GitHub 仓库的 <code>models/</code> 目录，并追加到 <code>models/manifest.json</code>，提交后 Vercel 自动重新部署。</p>
         <div id="msg" class="hint"></div>
       </div>
+
+      <h1 style="margin-top:24px;">Seedream 图生图（上传宠物照片并生成）</h1>
+      <div class="panel">
+        <div class="row"><label>提示词</label><input id="sPrompt" placeholder="例如：把我的宠物变成科幻宇航员"/></div>
+        <div class="row"><label>图片</label>
+          <div class="drop" id="sDrop">拖拽到此或点击选择
+            <input id="sFile" type="file" accept="image/*" style="display:none"/>
+          </div>
+        </div>
+        <div class="row"><label>尺寸</label>
+          <select id="sSize">
+            <option value="1024x1024">1024x1024</option>
+            <option value="1792x1024">1792x1024（横版）</option>
+            <option value="1024x1792">1024x1792（竖版）</option>
+          </select>
+        </div>
+        <div class="row"><label>质量</label>
+          <select id="sQuality">
+            <option value="standard">standard</option>
+            <option value="hd">hd</option>
+          </select>
+        </div>
+        <div class="row"><label></label><button class="btn" id="sGo">一键生成</button></div>
+        <div id="sMsg" class="hint"></div>
+        <div class="row" style="margin-top:12px;">
+          <label>结果</label>
+          <div>
+            <img id="sResult" alt="生成结果" style="max-width:100%; border-radius:12px; display:none;"/>
+          </div>
+        </div>
+      </div>
+
+      <h1 style="margin-top:24px;">图片管理（隐藏 / 删除）</h1>
+      <div class="panel">
+        <div class="row"><label>操作</label>
+          <div>
+            <button class="btn" id="mgRefresh">刷新列表</button>
+          </div>
+        </div>
+        <div class="row"><label>列表</label>
+          <div id="mgList" class="hint">点击“刷新列表”获取清单</div>
+        </div>
+        <div id="mgMsg" class="hint"></div>
+      </div>
     </div>
     <script>
       const $ = (s)=>document.querySelector(s);
@@ -81,6 +125,140 @@
           msg.className='ok';
         }catch(err){ msg.textContent='失败：'+err.message; msg.className='err'; }
       });
+
+      // ==========================
+      // Seedream 图生图最小前端
+      // ==========================
+      const sDrop = document.querySelector('#sDrop');
+      const sFile = document.querySelector('#sFile');
+      const sPrompt = document.querySelector('#sPrompt');
+      const sSize = document.querySelector('#sSize');
+      const sQuality = document.querySelector('#sQuality');
+      const sGo = document.querySelector('#sGo');
+      const sMsg = document.querySelector('#sMsg');
+      const sResult = document.querySelector('#sResult');
+
+      if (sDrop && sFile) {
+        sDrop.addEventListener('click', ()=> sFile.click());
+        sDrop.addEventListener('dragover', e=>{ e.preventDefault(); sDrop.style.background='#f8fafc'; });
+        sDrop.addEventListener('dragleave', ()=>{ sDrop.style.background='#fcfcfd'; });
+        sDrop.addEventListener('drop', e=>{ e.preventDefault(); sDrop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ sFile.files=e.dataTransfer.files; } });
+      }
+
+      function fileToDataURL(file){
+        return new Promise((resolve, reject)=>{
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('读取文件失败'));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (sGo) {
+        sGo.addEventListener('click', async ()=>{
+          try{
+            sMsg.textContent='';
+            sMsg.className='hint';
+            sResult.style.display='none';
+            const file = sFile?.files?.[0];
+            const promptVal = sPrompt?.value?.trim();
+            if(!file){ sMsg.textContent='请选择图片'; sMsg.className='err'; return; }
+            if(!promptVal){ sMsg.textContent='请输入提示词'; sMsg.className='err'; return; }
+            sGo.disabled = true; const oldText = sGo.textContent; sGo.textContent='生成中…';
+
+            const dataUrl = await fileToDataURL(file);
+            const payload = {
+              prompt: promptVal,
+              imageBase64: dataUrl,
+              size: sSize?.value || '1024x1024',
+              quality: sQuality?.value || 'standard',
+              response_format: 'url'
+            };
+            const resp = await fetch('/api/seedream', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+            const text = await resp.text();
+            let data=null; try{ data = JSON.parse(text); } catch{}
+            if(!resp.ok){ throw new Error(data?.error || text || '生成失败'); }
+
+            // 兼容返回：data[0].url 或 data[0].b64_json
+            let imgUrl = '';
+            const item = data?.data?.[0];
+            if(item?.url){ imgUrl = item.url; }
+            else if(item?.b64_json){ imgUrl = 'data:image/png;base64,' + item.b64_json; }
+            if(!imgUrl){ throw new Error('上游无有效结果'); }
+
+            sResult.src = imgUrl;
+            sResult.style.display = 'block';
+            sMsg.textContent = '生成成功';
+            sMsg.className = 'ok';
+            sGo.textContent = oldText; sGo.disabled=false;
+          }catch(err){
+            sMsg.textContent = '失败：' + err.message;
+            sMsg.className = 'err';
+            sGo.disabled=false; sGo.textContent='一键生成';
+          }
+        });
+      }
+
+      // ==========================
+      // 图片管理：列表/隐藏/删除
+      // ==========================
+      const mgRefresh = document.querySelector('#mgRefresh');
+      const mgList = document.querySelector('#mgList');
+      const mgMsg = document.querySelector('#mgMsg');
+
+      function htmlescape(s){ return String(s).replace(/[&<>"]|'/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+      async function mgCall(action, payload){
+        const secret = document.querySelector('#secret')?.value?.trim() || '';
+        const resp = await fetch('/api/manage', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ action, ...payload }) });
+        const text = await resp.text(); let data=null; try{ data = JSON.parse(text); } catch{}
+        if(!resp.ok){ throw new Error(data?.error || text || '请求失败'); }
+        return data;
+      }
+
+      function renderList(items){
+        if(!Array.isArray(items) || !items.length){ mgList.innerHTML = '<span class="hint">暂无条目</span>'; return; }
+        const rows = items.map((it)=>{
+          const badge = it.hidden ? '<span style="color:#dc2626;">隐藏</span>' : '<span style="color:#059669;">显示中</span>';
+          const src = htmlescape(it.src || '');
+          const id = htmlescape(it.id || '');
+          const type = htmlescape(it.type || '');
+          return `<div style="display:flex; align-items:center; gap:8px; margin:6px 0;">
+            <code>${id}</code>
+            <span style="color:#6b7280;">(${type})</span>
+            <span>${badge}</span>
+            <a href="${src}" target="_blank" rel="noreferrer">预览</a>
+            <button class="btn" data-act="${it.hidden? 'unhide':'hide'}" data-id="${id}" style="background:${it.hidden?'#111':'#6b7280'};">${it.hidden? '取消隐藏':'隐藏'}</button>
+            <button class="btn" data-act="delete" data-id="${id}" style="background:#b91c1c;">删除</button>
+          </div>`;
+        }).join('');
+        mgList.innerHTML = rows;
+        mgList.querySelectorAll('button[data-act]').forEach(btn=>{
+          btn.addEventListener('click', async ()=>{
+            try{
+              mgMsg.textContent=''; mgMsg.className='hint';
+              const act = btn.getAttribute('data-act');
+              const id = btn.getAttribute('data-id');
+              btn.disabled=true; const old=btn.textContent; btn.textContent='处理中…';
+              await mgCall(act, { id });
+              const { models } = await mgCall('list', {});
+              renderList(models);
+              btn.textContent=old; btn.disabled=false;
+            }catch(err){ mgMsg.textContent='失败：'+err.message; mgMsg.className='err'; }
+          });
+        });
+      }
+
+      if (mgRefresh) {
+        mgRefresh.addEventListener('click', async ()=>{
+          try{
+            mgMsg.textContent=''; mgMsg.className='hint';
+            mgList.textContent='加载中…';
+            const data = await mgCall('list', {});
+            renderList(data.models || []);
+          }catch(err){ mgMsg.textContent='失败：'+err.message; mgMsg.className='err'; }
+        });
+      }
     </script>
   </body>
   </html>

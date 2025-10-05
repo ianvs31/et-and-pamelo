@@ -405,7 +405,7 @@
           const res = await fetch('./models/manifest.json', { cache: 'no-cache' });
           if (!res.ok) return;
           const data = await res.json();
-          const list = Array.isArray(data.models) ? data.models.slice().reverse() : [];
+          const list = Array.isArray(data.models) ? data.models.slice().reverse().filter((x)=>!x.hidden) : [];
           const grid = document.getElementById('grid');
           grid.innerHTML = '';
           for (const item of list) {

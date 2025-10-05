@@ -51,3 +51,73 @@ npx serve -l 5173 --single
 - 主格式：`.glb`（glTF 2.0）。
 - 可选 AR：`.usdz`（iOS Safari Quick Look）。
 - 体积目标：≤ 20MB；尽量压缩网格（Draco/Meshopt）与贴图（KTX2）。
+
+## 集成 Seedream 图生图
+
+本项目已新增后端代理 `api/seedream.js` 与前端最小表单（位于 `admin.html` 下半部分）。用途：上传你的宠物照片，输入提示词，调用 Seedream 进行图生图生成并在页面展示结果。
+
+### 环境变量（Vercel 项目中配置）
+
+- `SEEDREAM_API_URL`：上游图像编辑/生成接口地址（OpenAI 兼容 Images API）。例如：
+  - `https://ark.cn-beijing.volces.com/api/v3/images/edits`
+  - 或供应方兼容端点：`https://.../v1/images/edits` / `.../images/generations`
+- `SEEDREAM_API_KEY`：上游 API Key（作为 `Authorization: Bearer <key>`）
+- `SEEDREAM_MODEL`：模型名（默认 `seedream-4.0`）
+- `SEEDREAM_DEFAULT_SIZE`：默认 `1024x1024`
+- `SEEDREAM_DEFAULT_QUALITY`：默认 `standard`
+
+> 注意：请根据你的上游文档选择正确端点与参数（edits/generations 等）。当前后端以 FormData 方式转发 `image + prompt + model + size + quality + response_format(url|b64_json)`。
+
+### 使用步骤
+
+1. 在 Vercel 项目“Settings > Environment Variables”中配置上述环境变量并重新部署。
+2. 访问部署的站点的 `/admin.html`。
+3. 在“Seedream 图生图”区域：
+   - 选择一张宠物照片
+   - 输入提示词（例：把我的宠物变成科幻宇航员）
+   - 可选调整尺寸/质量
+   - 点击“一键生成”，等待结果图展示
+
+### API 接口（前端→后端）
+
+`POST /api/seedream`
+
+请求 JSON：
+
+```json
+{
+  "prompt": "把我的宠物变成科幻宇航员",
+  "imageBase64": "data:image/png;base64,......",
+  "size": "1024x1024",
+  "quality": "standard",
+  "response_format": "url"
+}
+```
+
+响应：透传上游结果（通常 `data[0].url` 或 `data[0].b64_json`）。
+
+### 安全与限制
+
+- 后端限制了图片 Base64 长度（约 25MB）。
+- 请勿在前端暴露上游 Key，一律通过 `/api/seedream` 代理。
+
+## 图片管理（隐藏/删除）
+
+已新增后端接口 `api/manage.js` 与 `admin.html` 管理面板：
+
+- 认证：同 `api/upload`，需在请求头传 `x-admin-secret`，并在 Vercel 配置 `ADMIN_SECRET`。
+- 能力：
+  - list：返回 `models/manifest.json` 中的条目
+  - hide/unhide：对条目标记 `hidden: true` 或移除 `hidden`
+  - delete：删除仓库文件并从 `manifest` 移除对应 id 的所有条目
+
+前端使用（位于 `/admin.html` 最下方“图片管理”）：
+
+1. 在顶部输入 Admin Secret（与 Vercel 一致）
+2. 点击“刷新列表”查看条目
+3. 对目标项点击“隐藏/取消隐藏”或“删除”
+
+前台展示过滤：
+
+- `index.html` 在渲染时会自动过滤 `hidden: true` 的条目，不会展示。
+
