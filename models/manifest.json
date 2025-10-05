@@ -3,8 +3,7 @@
     {
       "id": "brotherhood",
       "type": "image",
-      "src": "./models/pictures/brotherhood.jpeg",
-      "hidden": true
+      "src": "./models/pictures/brotherhood.jpeg"
     },
     {
       "id": "cheif",
