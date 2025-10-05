@@ -252,8 +252,12 @@
               try{
                 const up = await fetch('/api/temp-upload', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ filename: fname, contentBase64 }) });
                 const ut = await up.text(); let uj=null; try{ uj=JSON.parse(ut); }catch{}
-                if(up.ok && uj?.ok){ finalImage = uj.download_url || uj.url || '';
-                  // 若拿到的是站内相对路径（./models/...），上游会认为不是有效 URL，则继续回退
+                if(up.ok && uj?.ok){
+                  const cand = uj.download_url || uj.url || '';
+                  const isAbs = /^https?:\/\//i.test(cand);
+                  const isGhRaw = /(^https?:\/\/raw\.githubusercontent\.com\//i).test(cand);
+                  // 避免上游拉取 GitHub Raw 超时：若是 raw.githubusercontent.com，则回退为 base64
+                  if (isAbs && !isGhRaw) finalImage = cand;
                 }
               }catch{}
               // 回退：若临时上传失败，仍然用 base64 dataURL
