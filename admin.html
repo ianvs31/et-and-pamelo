@@ -50,27 +50,35 @@
       <h1 style="margin-top:24px;">Seedream 图生图（上传宠物照片并生成）</h1>
       <div class="panel">
         <div class="row"><label>提示词</label><input id="sPrompt" placeholder="例如：把我的宠物变成科幻宇航员"/></div>
+        <div class="row"><label>模型/Endpoint ID</label><input id="sModel" placeholder="如 doubao-seedream-4-0-250828 或 ep-..."/></div>
         <div class="row"><label>图片</label>
           <div class="drop" id="sDrop">拖拽到此或点击选择
             <input id="sFile" type="file" accept="image/*" style="display:none"/>
           </div>
         </div>
+        <div class="row"><label>图片URL</label><input id="sImageUrl" placeholder="可直接粘贴图片直链（优先使用）"/></div>
         <div class="row"><label>输入预览</label>
           <div>
             <img id="sPreview" alt="输入预览" style="max-width:100%; border-radius:12px; display:none;"/>
           </div>
         </div>
-        <div class="row"><label>尺寸</label>
-          <select id="sSize">
-            <option value="1024x1024">1024x1024</option>
-            <option value="1792x1024">1792x1024（横版）</option>
-            <option value="1024x1792">1024x1792（竖版）</option>
-          </select>
-        </div>
+        <div class="row"><label>尺寸</label><input id="sSize" placeholder="如 1024x1024 或 2K"/></div>
         <div class="row"><label>质量</label>
           <select id="sQuality">
             <option value="standard">standard</option>
             <option value="hd">hd</option>
+          </select>
+        </div>
+        <div class="row"><label>序列生成</label>
+          <select id="sSeq">
+            <option value="disabled">disabled</option>
+            <option value="enabled">enabled</option>
+          </select>
+        </div>
+        <div class="row"><label>水印</label>
+          <select id="sWatermark">
+            <option value="true">true</option>
+            <option value="false">false</option>
           </select>
         </div>
         <div class="row"><label></label><button class="btn" id="sGo">一键生成</button></div>
@@ -187,6 +195,10 @@
       const sMsg = document.querySelector('#sMsg');
       const sResult = document.querySelector('#sResult');
       const sPreview = document.querySelector('#sPreview');
+      const sImageUrl = document.querySelector('#sImageUrl');
+      const sModel = document.querySelector('#sModel');
+      const sSeq = document.querySelector('#sSeq');
+      const sWatermark = document.querySelector('#sWatermark');
 
       if (sDrop && sFile) {
         sDrop.addEventListener('click', ()=> sFile.click());
@@ -233,9 +245,14 @@
             const dataUrl = await fileToDataURL(file);
             const payload = {
               prompt: promptVal,
-              imageBase64: dataUrl,
-              size: sSize?.value || '1024x1024',
+              // 与示例一致：优先 URL；若无 URL 则用 base64
+              image: (sImageUrl?.value?.trim()) || undefined,
+              imageBase64: (!sImageUrl?.value?.trim()) ? dataUrl : undefined,
+              model: sModel?.value?.trim() || undefined,
+              size: sSize?.value?.trim() || '1024x1024',
               quality: sQuality?.value || 'standard',
+              sequential_image_generation: sSeq?.value || 'disabled',
+              watermark: (sWatermark?.value === 'true'),
               response_format: 'url'
             };
             const resp = await fetch('/api/seedream', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
