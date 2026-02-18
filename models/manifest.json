@@ -89,6 +89,16 @@
       "id": "generated-image-october-05-2025---5_14pm",
       "type": "image",
       "src": "./models/pictures/Generated Image October 05, 2025 - 5_14PM.png"
+    },
+    {
+      "id": "fortune-god-et",
+      "type": "image",
+      "src": "./models/pictures/fortune-god-et.png"
+    },
+    {
+      "id": "et-waiting-for-dinner",
+      "type": "image",
+      "src": "./models/pictures/et-waiting-for-dinner.png"
     }
   ]
 }
