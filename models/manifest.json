@@ -98,8 +98,7 @@
     {
       "id": "et-waiting-for-dinner",
       "type": "image",
-      "src": "./models/pictures/et-waiting-for-dinner.png",
-      "hidden": true
+      "src": "./models/pictures/et-waiting-for-dinner.png"
     }
   ]
 }
