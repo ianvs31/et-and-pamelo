@@ -1,9 +1,9 @@
 // Vercel Serverless Function
-// 目的：将前端上传的图片（base64）与提示词转发给 Seedream 4.0 图生图接口（以 OpenAI 兼容 Images API 形式）。
+// 目的：将前端上传的图片（base64）与提示词转发给 Seedream 4.5 图生图接口（以 OpenAI 兼容 Images API 形式）。
 // 配置环境变量（在 Vercel 项目中设置）：
 // - SEEDREAM_API_URL   例如：https://ark.cn-beijing.volces.com/api/v3/images/edits （或供应方兼容的 images/edits、images/variations）
 // - SEEDREAM_API_KEY   供应方发放的 API Key（Bearer）
-// - SEEDREAM_MODEL     模型名，如 seedream-4.0 或官方给定别名
+// - SEEDREAM_MODEL     模型名，如 doubao-seedream-4-5-251128 或官方给定别名
 // - SEEDREAM_DEFAULT_SIZE 可选，默认 1024x1024
 // - SEEDREAM_DEFAULT_QUALITY 可选，默认 standard（如支持 hd 可改）
 
