@@ -190,40 +190,36 @@
 
       // 存储 Blob URL 以便稍后释放
       let previewUrl = null;
+      // 防止移动端 touch 和 click 同时触发
+      let isTouchTriggered = false;
+      let clickTimeout = null;
 
       if (sDrop && sFile) {
-        // 移动端兼容：直接让 sFile 捕获点击，避免事件传播问题
-        sDrop.addEventListener('click', (e) => {
-          // 防止事件冒泡导致的问题
-          e.stopPropagation();
-          // 使用 setTimeout 确保在移动端也能正常触发
-          setTimeout(() => {
+        // 移动端兼容：使用 pointerdown 事件替代 click，避免 touch + click 双重触发
+        sDrop.addEventListener('pointerdown', (e) => {
+          // 只响应左键或触摸
+          if (e.button !== 0) return;
+
+          if (clickTimeout) clearTimeout(clickTimeout);
+
+          clickTimeout = setTimeout(() => {
             try {
               sFile.click();
-              console.log('[Seedream] 尝试打开文件选择器');
+              console.log('[Seedream] 打开文件选择器');
             } catch (err) {
               console.error('[Seedream] 打开文件选择器失败:', err);
             }
-          }, 50);
+            clickTimeout = null;
+          }, 100);
         });
+
+        sDrop.addEventListener('pointerup', () => {
+          if (clickTimeout) clearTimeout(clickTimeout);
+        });
+
         sDrop.addEventListener('dragover', e=>{ e.preventDefault(); sDrop.style.background='#f8fafc'; });
         sDrop.addEventListener('dragleave', ()=>{ sDrop.style.background='#fcfcfd'; });
         sDrop.addEventListener('drop', e=>{ e.preventDefault(); sDrop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ sFile.files=e.dataTransfer.files; renderSeedreamPreview(f); } });
-
-        // 添加触摸支持（移动端）
-        sDrop.addEventListener('touchend', (e) => {
-          // 阻止默认行为，避免双击缩放等
-          if (e.cancelable) e.preventDefault();
-          e.stopPropagation();
-          setTimeout(() => {
-            try {
-              sFile.click();
-              console.log('[Seedream] 触摸触发文件选择器');
-            } catch (err) {
-              console.error('[Seedream] 触摸触发文件选择器失败:', err);
-            }
-          }, 50);
-        }, { passive: false });
 
         sFile.addEventListener('change', ()=>{
           const f = sFile.files?.[0];
