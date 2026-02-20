@@ -99,6 +99,11 @@
       "id": "et-waiting-for-dinner",
       "type": "image",
       "src": "./models/pictures/et-waiting-for-dinner.png"
+    },
+    {
+      "id": "2026-02-21-躺在沙发上的柚子",
+      "type": "image",
+      "src": "./models/pictures/Gemini_Generated_Image_veojgtveojgtveoj.png"
     }
   ]
 }
