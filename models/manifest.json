@@ -104,6 +104,11 @@
       "id": "gemini_generated_image_5e286t5e286t5e28",
       "type": "image",
       "src": "./models/pictures/Gemini_Generated_Image_5e286t5e286t5e28.png"
+    },
+    {
+      "id": "gemini_generated_image_fs7lpafs7lpafs7l",
+      "type": "image",
+      "src": "./models/pictures/Gemini_Generated_Image_fs7lpafs7lpafs7l.png"
     }
   ]
 }
