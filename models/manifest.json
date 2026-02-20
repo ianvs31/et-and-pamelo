@@ -96,11 +96,6 @@
       "src": "./models/pictures/fortune-god-et.png"
     },
     {
-      "id": "et-waiting-for-dinner",
-      "type": "image",
-      "src": "./models/pictures/et-waiting-for-dinner.png"
-    },
-    {
       "id": "gemini_generated_image_5e286t5e286t5e28",
       "type": "image",
       "src": "./models/pictures/Gemini_Generated_Image_5e286t5e286t5e28.png"
