@@ -54,7 +54,8 @@
       "catName": "",
       "description": "",
       "prompt": "",
-      "uploadDate": ""
+      "uploadDate": "",
+      "hidden": true
     },
     {
       "id": "floating-et",
