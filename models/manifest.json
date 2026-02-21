@@ -5,8 +5,8 @@
       "type": "image",
       "src": "./models/pictures/brotherhood.jpeg",
       "processedSrc": "./models/pictures/brotherhood.jpeg",
-      "title": "",
-      "catName": "",
+      "title": "通框",
+      "catName": "Both",
       "description": "",
       "prompt": "",
       "uploadDate": ""
