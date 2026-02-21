@@ -38,7 +38,11 @@
     {
       "id": "licking-pamelo",
       "type": "image",
-      "src": "./models/pictures/licking-pamelo.jpeg"
+      "src": "./models/pictures/licking-pamelo.jpeg",
+      "title": "",
+      "catName": "E.T.",
+      "description": "test",
+      "uploadDate": ""
     },
     {
       "id": "maid-et",
