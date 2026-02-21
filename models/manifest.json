@@ -241,17 +241,6 @@
       "description": "",
       "uploadDate": "",
       "processedSrc": "./models/tmp/Gemini_Generated_Image_xk413pxk413pxk41.png"
-    },
-    {
-      "id": "new-1771680100638",
-      "type": "image",
-      "src": "./models/pictures/sclassic 2026-02-08 111716065A8B284EEB.jpeg",
-      "processedSrc": "./models/tmp/Gemini_Generated_Image_5e286t5e286t5e28.png",
-      "title": "葛柚",
-      "catName": "E.T.",
-      "description": "",
-      "prompt": "",
-      "uploadDate": "2026-02-21T00:00:00.000Z"
     }
   ]
 }
