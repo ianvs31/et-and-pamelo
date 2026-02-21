@@ -93,7 +93,11 @@
     {
       "id": "fortune-god-et",
       "type": "image",
-      "src": "./models/pictures/fortune-god-et.png"
+      "src": "./models/pictures/fortune-god-et.png",
+      "title": "招财猫",
+      "catName": "E.T.",
+      "description": "",
+      "uploadDate": ""
     },
     {
       "id": "gemini_generated_image_5e286t5e286t5e28",
