@@ -13,8 +13,7 @@
     {
       "id": "eating-pamelo",
       "type": "image",
-      "src": "./models/pictures/eating-pamelo.jpeg",
-      "hidden": true
+      "src": "./models/pictures/eating-pamelo.jpeg"
     },
     {
       "id": "et",
