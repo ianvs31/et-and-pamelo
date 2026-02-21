@@ -3,37 +3,79 @@
     {
       "id": "brotherhood",
       "type": "image",
-      "src": "./models/pictures/brotherhood.jpeg"
+      "src": "./models/pictures/brotherhood.jpeg",
+      "processedSrc": "./models/pictures/brotherhood.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "cheif",
       "type": "image",
-      "src": "./models/pictures/cheif.jpeg"
+      "src": "./models/pictures/cheif.jpeg",
+      "processedSrc": "./models/pictures/cheif.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "eating-pamelo",
       "type": "image",
-      "src": "./models/pictures/eating-pamelo.jpeg"
+      "src": "./models/pictures/eating-pamelo.jpeg",
+      "processedSrc": "./models/pictures/eating-pamelo.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "et",
       "type": "image",
-      "src": "./models/pictures/et.jpeg"
+      "src": "./models/pictures/et.jpeg",
+      "processedSrc": "./models/pictures/et.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "fisherman",
       "type": "image",
-      "src": "./models/pictures/fisherman.jpeg"
+      "src": "./models/pictures/fisherman.jpeg",
+      "processedSrc": "./models/pictures/fisherman.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "floating-et",
       "type": "image",
-      "src": "./models/pictures/floating-et.jpeg"
+      "src": "./models/pictures/floating-et.jpeg",
+      "processedSrc": "./models/pictures/floating-et.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "kneel",
       "type": "image",
-      "src": "./models/pictures/kneel.jpeg"
+      "src": "./models/pictures/kneel.jpeg",
+      "processedSrc": "./models/pictures/kneel.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "licking-pamelo",
@@ -42,57 +84,119 @@
       "title": "",
       "catName": "E.T.",
       "description": "test",
-      "uploadDate": ""
+      "uploadDate": "",
+      "processedSrc": "./models/pictures/licking-pamelo.jpeg",
+      "prompt": ""
     },
     {
       "id": "maid-et",
       "type": "image",
-      "src": "./models/pictures/maid-et.jpeg"
+      "src": "./models/pictures/maid-et.jpeg",
+      "processedSrc": "./models/pictures/maid-et.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "mcdownload",
       "type": "image",
-      "src": "./models/pictures/mcdownload.jpeg"
+      "src": "./models/pictures/mcdownload.jpeg",
+      "processedSrc": "./models/pictures/mcdownload.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "pamelo",
       "type": "image",
-      "src": "./models/pictures/pamelo.png"
+      "src": "./models/pictures/pamelo.png",
+      "processedSrc": "./models/pictures/pamelo.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "unhappy-et",
       "type": "image",
-      "src": "./models/pictures/unhappy et.jpeg"
+      "src": "./models/pictures/unhappy et.jpeg",
+      "processedSrc": "./models/pictures/unhappy et.jpeg",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "et-in-the-chair",
       "type": "image",
-      "src": "./models/pictures/et-in-the-chair.png"
+      "src": "./models/pictures/et-in-the-chair.png",
+      "processedSrc": "./models/pictures/et-in-the-chair.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "et-and-pomelo",
       "type": "image",
-      "src": "./models/pictures/cat-in-basin.png"
+      "src": "./models/pictures/cat-in-basin.png",
+      "processedSrc": "./models/pictures/cat-in-basin.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "et-and-pomelo",
       "type": "image",
-      "src": "./models/pictures/devil.png"
+      "src": "./models/pictures/devil.png",
+      "processedSrc": "./models/pictures/devil.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "generated-image-october-05-2025---5_11pm",
       "type": "image",
-      "src": "./models/pictures/Generated Image October 05, 2025 - 5_11PM.png"
+      "src": "./models/pictures/Generated Image October 05, 2025 - 5_11PM.png",
+      "processedSrc": "./models/pictures/Generated Image October 05, 2025 - 5_11PM.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "generated-image-october-05-2025---5_12pm",
       "type": "image",
-      "src": "./models/pictures/Generated Image October 05, 2025 - 5_12PM.png"
+      "src": "./models/pictures/Generated Image October 05, 2025 - 5_12PM.png",
+      "processedSrc": "./models/pictures/Generated Image October 05, 2025 - 5_12PM.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "generated-image-october-05-2025---5_14pm",
       "type": "image",
-      "src": "./models/pictures/Generated Image October 05, 2025 - 5_14PM.png"
+      "src": "./models/pictures/Generated Image October 05, 2025 - 5_14PM.png",
+      "processedSrc": "./models/pictures/Generated Image October 05, 2025 - 5_14PM.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "fortune-god-et",
@@ -101,17 +205,31 @@
       "title": "招财猫",
       "catName": "E.T.",
       "description": "",
-      "uploadDate": ""
+      "uploadDate": "",
+      "processedSrc": "./models/pictures/fortune-god-et.png",
+      "prompt": ""
     },
     {
       "id": "gemini_generated_image_5e286t5e286t5e28",
       "type": "image",
-      "src": "./models/pictures/Gemini_Generated_Image_5e286t5e286t5e28.png"
+      "src": "./models/pictures/Gemini_Generated_Image_5e286t5e286t5e28.png",
+      "processedSrc": "./models/pictures/Gemini_Generated_Image_5e286t5e286t5e28.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "gemini_generated_image_fs7lpafs7lpafs7l",
       "type": "image",
-      "src": "./models/pictures/Gemini_Generated_Image_fs7lpafs7lpafs7l.png"
+      "src": "./models/pictures/Gemini_Generated_Image_fs7lpafs7lpafs7l.png",
+      "processedSrc": "./models/pictures/Gemini_Generated_Image_fs7lpafs7lpafs7l.png",
+      "title": "",
+      "catName": "",
+      "description": "",
+      "prompt": "",
+      "uploadDate": ""
     },
     {
       "id": "gemini_generated_image_xk413pxk413pxk41",
