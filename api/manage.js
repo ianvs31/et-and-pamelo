@@ -81,6 +81,23 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, affected: changed });
     }
 
+    if (action === 'update') {
+      const { json, sha, path } = await readManifest(headers, repo, branch);
+      const { title, description, catName } = req.body;
+      let updated = false;
+      for (const item of json.models) {
+        if (item && item.id === id) {
+          if (title !== undefined) item.title = title;
+          if (description !== undefined) item.description = description;
+          if (catName !== undefined) item.catName = catName;
+          updated = true;
+        }
+      }
+      if (!updated) return res.status(404).json({ error: 'Not Found: id not in manifest' });
+      await writeManifest(headers, repo, branch, path, sha, json, `update ${id}`);
+      return res.status(200).json({ ok: true });
+    }
+
     if (action === 'delete') {
       const { json, sha, path } = await readManifest(headers, repo, branch);
       const toDelete = json.models.filter(m => m && m.id === id);

@@ -18,6 +18,181 @@
       .ok { color: #059669; }
       .err { color: #dc2626; }
       code { background:#f3f4f6; padding: 2px 6px; border-radius: 6px; }
+      .btn { padding: 10px 14px; border-radius: 10px; background: #111; color: white; border: 0; cursor: pointer; font-size: 14px; }
+      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+      /* Card Grid Styles */
+      .card-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media (min-width: 600px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (min-width: 900px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }
+      .photo-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        transition: box-shadow 0.2s;
+      }
+      .photo-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      .card-thumb {
+        position: relative;
+        width: 100%;
+        padding-top: 75%;
+        background: #f3f4f6;
+      }
+      .card-thumb img {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: all 0.3s;
+      }
+      .hidden-style { filter: grayscale(100%); opacity: 0.5; }
+      .hidden-badge {
+        position: absolute;
+        top: 8px; right: 8px;
+        background: rgba(220, 38, 38, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .type-badge {
+        position: absolute;
+        top: 8px; left: 8px;
+        background: rgba(17, 17, 17, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+      .card-content { padding: 14px; }
+      .card-content h3 {
+        margin: 0 0 6px;
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card-content p {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: #6b7280;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 32px;
+      }
+      .cat-badge {
+        display: inline-block;
+        background: #f3f4f6;
+        color: #374151;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        margin-bottom: 10px;
+      }
+      .card-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .btn-icon {
+        width: 32px; height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 0;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s;
+      }
+      .btn-icon:hover { background: #e5e7eb; }
+      .btn-icon.delete { background: #fee2e2; color: #b91c1c; }
+      .btn-icon.delete:hover { background: #fecaca; }
+      .btn-icon.active { background: #dbeafe; color: #2563eb; }
+      /* Edit Mode Styles */
+      .edit-mode { display: none; }
+      .edit-mode input, .edit-mode textarea, .edit-mode select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 8px;
+        box-sizing: border-box;
+      }
+      .edit-mode textarea {
+        resize: vertical;
+        min-height: 60px;
+        font-family: inherit;
+      }
+      .edit-actions { display: flex; gap: 8px; }
+      .btn-save {
+        flex: 1;
+        padding: 8px;
+        border-radius: 8px;
+        background: #059669;
+        color: white;
+        border: 0;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .btn-cancel {
+        flex: 1;
+        padding: 8px;
+        border-radius: 8px;
+        background: #6b7280;
+        color: white;
+        border: 0;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .btn-save:hover { background: #047857; }
+      .btn-cancel:hover { background: #4b5563; }
+      /* Loading Spinner */
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        color: #6b7280;
+      }
+      .spinner {
+        width: 32px; height: 32px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #111;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 12px;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      /* Refresh Button */
+      .refresh-row { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+      .refresh-btn {
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 0;
+        cursor: pointer;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+      }
+      .refresh-btn:hover { background: #e5e7eb; }
     </style>
   </head>
   <body>
@@ -81,17 +256,21 @@
         </div>
       </div>
 
-      <h1 style="margin-top:24px;">图片管理（隐藏 / 删除）</h1>
+      <h1 style="margin-top:24px;">图片管理（编辑 / 隐藏 / 删除）</h1>
       <div class="panel">
-        <div class="row"><label>操作</label>
-          <div>
-            <button class="btn" id="mgRefresh">刷新列表</button>
+        <div class="refresh-row">
+          <button class="refresh-btn" id="mgRefresh">
+            <span>↻</span>
+            <span>刷新列表</span>
+          </button>
+        </div>
+        <div id="mgList">
+          <div class="loading">
+            <div class="spinner"></div>
+            <span>加载中...</span>
           </div>
         </div>
-        <div class="row"><label>列表</label>
-          <div id="mgList" class="hint">点击“刷新列表”获取清单</div>
-        </div>
-        <div id="mgMsg" class="hint"></div>
+        <div id="mgMsg" class="hint" style="margin-top:12px;"></div>
       </div>
     </div>
     <script>
@@ -405,7 +584,7 @@
       }
 
       // ==========================
-      // 图片管理：列表/隐藏/删除
+      // 图片管理：卡片网格/内联编辑/隐藏/删除
       // ==========================
       const mgRefresh = document.querySelector('#mgRefresh');
       const mgList = document.querySelector('#mgList');
@@ -417,53 +596,189 @@
         const secret = document.querySelector('#secret')?.value?.trim() || '';
         const resp = await fetch('/api/manage', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-secret': secret }, body: JSON.stringify({ action, ...payload }) });
         const text = await resp.text(); let data=null; try{ data = JSON.parse(text); } catch{}
-        if(!resp.ok){ throw new Error(data?.error || text || '请求失败'); }
+        if(!resp.ok){
+          if(resp.status === 501){
+            throw new Error('当前使用的是静态服务器，不支持 API 操作。请使用 Vercel dev 服务器，或等部署到生产环境。');
+          }
+          throw new Error(data?.error || text || '请求失败');
+        }
         return data;
       }
 
+      function getTypeEmoji(type){
+        switch(type){
+          case 'video': return '🎬';
+          case 'model': return '🧊';
+          default: return '📷';
+        }
+      }
+
+      function getThumbnailUrl(item){
+        return htmlescape(item.processedSrc || item.src || '');
+      }
+
+      function renderCard(item){
+        const id = htmlescape(item.id || '');
+        const type = htmlescape(item.type || 'image');
+        const title = htmlescape(item.title || item.id || '');
+        const desc = htmlescape(item.description || '');
+        const catName = htmlescape(item.catName || 'Both');
+        const thumbUrl = getThumbnailUrl(item);
+        const isHidden = !!item.hidden;
+        const typeEmoji = getTypeEmoji(type);
+
+        return `
+          <div class="photo-card" data-id="${id}" data-original-title="${title}" data-original-desc="${desc}" data-original-cat="${catName}">
+            <div class="card-thumb">
+              <img src="${thumbUrl}" alt="${title}" ${isHidden ? 'class="hidden-style"' : ''} loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%25%22 height=%22100%25%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%236b7280%22 text-anchor=%22middle%22 dy=%22.3em%22%3E加载失败%3C/text%3E%3C/svg%3E';console.error('Image failed to load:', '${thumbUrl}', this);" />
+              ${isHidden ? '<span class="hidden-badge">Hidden</span>' : ''}
+              <span class="type-badge">${typeEmoji} ${type}</span>
+            </div>
+            <div class="card-content">
+              <div class="view-mode">
+                <h3 title="${title}">${title}</h3>
+                ${desc ? `<p title="${desc}">${desc}</p>` : '<p style="min-height:32px;"></p>'}
+                <span class="cat-badge">${catName}</span>
+                <div class="card-actions">
+                  <button class="btn-icon" data-act="toggle-visibility" title="${isHidden ? '显示' : '隐藏'}">${isHidden ? '👁️‍🗨️' : '👁️'}</button>
+                  <button class="btn-icon" data-act="edit" title="编辑">✏️</button>
+                  <button class="btn-icon delete" data-act="delete" title="删除">🗑️</button>
+                </div>
+              </div>
+              <div class="edit-mode">
+                <input class="edit-title" value="${title}" placeholder="标题" />
+                <textarea class="edit-desc" placeholder="描述">${desc}</textarea>
+                <select class="edit-cat">
+                  <option ${catName === 'Both' ? 'selected' : ''}>Both</option>
+                  <option ${catName === 'E.T.' ? 'selected' : ''}>E.T.</option>
+                  <option ${catName === 'Pamelo' ? 'selected' : ''}>Pamelo</option>
+                </select>
+                <div class="edit-actions">
+                  <button class="btn-save">保存</button>
+                  <button class="btn-cancel">取消</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       function renderList(items){
-        if(!Array.isArray(items) || !items.length){ mgList.innerHTML = '<span class="hint">暂无条目</span>'; return; }
-        const rows = items.map((it)=>{
-          const badge = it.hidden ? '<span style="color:#dc2626;">隐藏</span>' : '<span style="color:#059669;">显示中</span>';
-          const src = htmlescape(it.src || '');
-          const id = htmlescape(it.id || '');
-          const type = htmlescape(it.type || '');
-          return `<div style="display:flex; align-items:center; gap:8px; margin:6px 0;">
-            <code>${id}</code>
-            <span style="color:#6b7280;">(${type})</span>
-            <span>${badge}</span>
-            <a href="${src}" target="_blank" rel="noreferrer">预览</a>
-            <button class="btn" data-act="${it.hidden? 'unhide':'hide'}" data-id="${id}" style="background:${it.hidden?'#111':'#6b7280'};">${it.hidden? '取消隐藏':'隐藏'}</button>
-            <button class="btn" data-act="delete" data-id="${id}" style="background:#b91c1c;">删除</button>
-          </div>`;
-        }).join('');
-        mgList.innerHTML = rows;
-        mgList.querySelectorAll('button[data-act]').forEach(btn=>{
-          btn.addEventListener('click', async ()=>{
+        if(!Array.isArray(items) || !items.length){
+          mgList.innerHTML = '<div style="text-align:center; padding:40px; color:#6b7280;">暂无条目</div>';
+          return;
+        }
+        const cards = items.map(renderCard).join('');
+        mgList.innerHTML = `<div class="card-grid">${cards}</div>`;
+
+        // 绑定卡片事件
+        mgList.querySelectorAll('.photo-card').forEach(card=>{
+          const id = card.dataset.id;
+
+          // 切换显示/隐藏
+          card.querySelector('[data-act="toggle-visibility"]').addEventListener('click', async (e)=>{
             try{
               mgMsg.textContent=''; mgMsg.className='hint';
-              const act = btn.getAttribute('data-act');
-              const id = btn.getAttribute('data-id');
-              btn.disabled=true; const old=btn.textContent; btn.textContent='处理中…';
+              const isHidden = card.querySelector('.hidden-badge') !== null;
+              const act = isHidden ? 'unhide' : 'hide';
+              e.target.disabled = true;
               await mgCall(act, { id });
-              const { models } = await mgCall('list', {});
-              renderList(models);
-              btn.textContent=old; btn.disabled=false;
+              e.target.disabled = false;
+              await loadList();
+            }catch(err){ mgMsg.textContent='失败：'+err.message; mgMsg.className='err'; }
+          });
+
+          // 编辑模式切换
+          card.querySelector('[data-act="edit"]').addEventListener('click', (e)=>{
+            const viewMode = card.querySelector('.view-mode');
+            const editMode = card.querySelector('.edit-mode');
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+          });
+
+          // 取消编辑
+          card.querySelector('.btn-cancel').addEventListener('click', ()=>{
+            const viewMode = card.querySelector('.view-mode');
+            const editMode = card.querySelector('.edit-mode');
+            // 恢复原始值
+            card.querySelector('.edit-title').value = card.dataset.originalTitle;
+            card.querySelector('.edit-desc').value = card.dataset.originalDesc;
+            card.querySelector('.edit-cat').value = card.dataset.originalCat;
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+          });
+
+          // 保存编辑
+          card.querySelector('.btn-save').addEventListener('click', async ()=>{
+            try{
+              mgMsg.textContent=''; mgMsg.className='hint';
+              const title = card.querySelector('.edit-title').value.trim();
+              const description = card.querySelector('.edit-desc').value.trim();
+              const catName = card.querySelector('.edit-cat').value;
+              const saveBtn = card.querySelector('.btn-save');
+              saveBtn.disabled = true;
+              saveBtn.textContent = '保存中…';
+
+              await mgCall('update', { id, title, description, catName });
+              mgMsg.textContent='保存成功';
+              mgMsg.className='ok';
+              await loadList();
+            }catch(err){ mgMsg.textContent='失败：'+err.message; mgMsg.className='err'; }
+          });
+        });
+
+        // 绑定删除事件
+        mgList.querySelectorAll('[data-act="delete"]').forEach(btn=>{
+          btn.addEventListener('click', async (e)=>{
+            const id = e.target.closest('[data-act="delete"]').closest('.photo-card').dataset.id;
+            if(!confirm('确定要删除这个条目吗？此操作不可恢复。')) return;
+            try{
+              mgMsg.textContent=''; mgMsg.className='hint';
+              e.target.disabled = true;
+              await mgCall('delete', { id });
+              e.target.disabled = false;
+              mgMsg.textContent='删除成功';
+              mgMsg.className='ok';
+              await loadList();
             }catch(err){ mgMsg.textContent='失败：'+err.message; mgMsg.className='err'; }
           });
         });
       }
 
-      if (mgRefresh) {
-        mgRefresh.addEventListener('click', async ()=>{
-          try{
-            mgMsg.textContent=''; mgMsg.className='hint';
-            mgList.textContent='加载中…';
-            const data = await mgCall('list', {});
-            renderList(data.models || []);
-          }catch(err){ mgMsg.textContent='失败：'+err.message; mgMsg.className='err'; }
-        });
+      async function loadList(){
+        try{
+          mgMsg.textContent=''; mgMsg.className='hint';
+          mgList.innerHTML = `<div class="loading"><div class="spinner"></div><span>加载中...</span></div>`;
+          const data = await mgCall('list', {});
+          renderList(data.models || []);
+        }catch(err){
+          if(err.message.includes('静态服务器') || err.message.includes('不支持 API 操作')){
+            // 备用：直接读取 manifest.json
+            try{
+              const resp = await fetch('/models/manifest.json');
+              if(resp.ok){
+                const text = await resp.text();
+                const data = JSON.parse(text);
+                renderList(data.models || []);
+                mgMsg.textContent = '注意：当前使用静态服务器，图片查看功能正常可用。编辑/隐藏/删除等功能需要部署到生产环境。';
+                mgMsg.className = 'hint';
+              }else{
+                throw new Error('加载 manifest 失败');
+              }
+            }catch(e){
+              throw new Error('加载失败：'+e.message);
+            }
+          }
+          mgMsg.textContent='失败：'+err.message; mgMsg.className='err';
+        }
       }
+
+      if (mgRefresh) {
+        mgRefresh.addEventListener('click', loadList);
+      }
+
+      // 页面加载时自动获取列表
+      loadList();
     </script>
   </body>
   </html>

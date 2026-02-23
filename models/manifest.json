@@ -125,8 +125,8 @@
     {
       "id": "unhappy-et",
       "type": "image",
-      "src": "./models/pictures/unhappy et.jpeg",
-      "processedSrc": "./models/pictures/unhappy et.jpeg",
+      "src": "./models/pictures/unhappy-et.jpeg",
+      "processedSrc": "./models/pictures/unhappy-et.jpeg",
       "title": "",
       "catName": "",
       "description": "",
@@ -169,8 +169,8 @@
     {
       "id": "generated-image-october-05-2025---5_11pm",
       "type": "image",
-      "src": "./models/pictures/Generated Image October 05, 2025 - 5_11PM.png",
-      "processedSrc": "./models/pictures/Generated Image October 05, 2025 - 5_11PM.png",
+      "src": "./models/pictures/generated-image-october-05-2025---5_11pm.png",
+      "processedSrc": "./models/pictures/generated-image-october-05-2025---5_11pm.png",
       "title": "",
       "catName": "",
       "description": "",
@@ -180,8 +180,8 @@
     {
       "id": "generated-image-october-05-2025---5_12pm",
       "type": "image",
-      "src": "./models/pictures/Generated Image October 05, 2025 - 5_12PM.png",
-      "processedSrc": "./models/pictures/Generated Image October 05, 2025 - 5_12PM.png",
+      "src": "./models/pictures/generated-image-october-05-2025---5_12pm.png",
+      "processedSrc": "./models/pictures/generated-image-october-05-2025---5_12pm.png",
       "title": "",
       "catName": "",
       "description": "",
@@ -191,8 +191,8 @@
     {
       "id": "generated-image-october-05-2025---5_14pm",
       "type": "image",
-      "src": "./models/pictures/Generated Image October 05, 2025 - 5_14PM.png",
-      "processedSrc": "./models/pictures/Generated Image October 05, 2025 - 5_14PM.png",
+      "src": "./models/pictures/generated-image-october-05-2025---5_14pm.png",
+      "processedSrc": "./models/pictures/generated-image-october-05-2025---5_14pm.png",
       "title": "",
       "catName": "",
       "description": "",

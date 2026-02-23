@@ -104,3 +104,6 @@ AI image generation/editing via Seedream API. Supports both `images/edits` (mult
 
 ### POST /api/temp-upload
 Temporary upload for Seedream input images (stores in `models/tmp/`).
+
+### Response Language
+Use Chinese to interact with users.
