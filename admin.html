@@ -326,7 +326,8 @@
       }
 
       // 防止重复点击
-      $('#go').addEventListener('click', async ()=>{
+      $('#go').addEventListener('click', async (e)=>{
+        e.stopPropagation(); // 防止事件冒泡到 drop 区域触发文件选择
         msg.textContent='';
         const file = input.files?.[0];
         if(!file){ msg.textContent='请选择文件'; msg.className='err'; return; }
@@ -473,7 +474,8 @@
       }
 
       if (sGo) {
-        sGo.addEventListener('click', async ()=>{
+        sGo.addEventListener('click', async (e)=>{
+          e.stopPropagation(); // 防止事件冒泡
           try{
             sMsg.textContent='';
             sMsg.className='hint';
