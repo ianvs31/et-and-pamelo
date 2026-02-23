@@ -325,6 +325,7 @@
         }catch{ /* ignore preview errors */ }
       }
 
+      // 防止重复点击
       $('#go').addEventListener('click', async ()=>{
         msg.textContent='';
         const file = input.files?.[0];
@@ -345,6 +346,13 @@
           const link = data?.src ? ` 可访问路径：${data.src}（部署完成后生效）` : '';
           msg.innerHTML = `成功：已提交到 GitHub，等待 Vercel 自动部署。${link ? `<br/>`+link : ''}${data?.commitUrl ? `<br/>Commit: <a href="${data.commitUrl}" target="_blank" rel="noreferrer">${data.commitUrl}</a>` : ''}`;
           msg.className='ok';
+          // 清除文件选择器和预览，避免重复上传问题
+          if(input){
+            input.value = '';
+            input.files = null;  // 清除文件数组
+          }
+          if(upPreview){ upPreview.style.display='none'; upPreview.removeAttribute('src'); }
+          idInput.value = '';
         }catch(err){ msg.textContent='失败：'+err.message; msg.className='err'; }
         finally {
           const goBtn = document.querySelector('#go');
