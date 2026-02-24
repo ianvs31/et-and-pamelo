@@ -282,7 +282,6 @@
       function nameToId(name){
         return name.toLowerCase().replace(/\.[^.]+$/, '').replace(/\s+/g,'-').replace(/[^a-z0-9-_]/g,'');
       }
-      drop.addEventListener('click',()=>input.click());
       drop.addEventListener('dragover',e=>{e.preventDefault(); drop.style.background='#f8fafc';});
       drop.addEventListener('dragleave',()=>{drop.style.background='#fcfcfd';});
       drop.addEventListener('drop',async e=>{e.preventDefault(); drop.style.background='#fcfcfd'; const f=e.dataTransfer.files?.[0]; if(f){ input.files=e.dataTransfer.files; idInput.value=nameToId(f.name); await renderUploadPreview(f); }});
@@ -350,7 +349,6 @@
           // 清除文件选择器和预览，避免重复上传问题
           if(input){
             input.value = '';
-            input.files = null;  // 清除文件数组
           }
           if(upPreview){ upPreview.style.display='none'; upPreview.removeAttribute('src'); }
           idInput.value = '';
