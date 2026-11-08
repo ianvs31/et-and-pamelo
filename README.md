@@ -4,7 +4,7 @@
 
 ## 画廊作品生成
 
-使用 [E.T. and Pomelo 画廊作品生成 Prompt](prompts/gallery-artwork.md)，根据指定猫照搭建写实的白底摄影棚微缩场景。默认全身入镜，允许合理补全缺失身体部位；生成后先保存草稿，明确确认后再发布。
+使用 [E.T. and Pomelo 画廊作品生成 Prompt](prompts/gallery-artwork.md)，根据指定猫照搭建写实、纯白背景（#FFFFFF）的摄影棚微缩场景。默认全身入镜，允许合理补全缺失身体部位；生成后核对成图背景像素并保存草稿，明确确认后再发布。
 
 ## 本地预览
 
