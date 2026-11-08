@@ -231,6 +231,17 @@
       "description": "",
       "prompt": "",
       "uploadDate": ""
+    },
+    {
+      "id": "et-and-pomelo-two-cats-v1",
+      "type": "image",
+      "src": "./models/pictures/et-and-pomelo-two-cats-v1.png",
+      "processedSrc": "./models/pictures/et-and-pomelo-two-cats-v1.png",
+      "title": "一睡一醒",
+      "catName": "Both",
+      "description": "依偎在圆形软垫上的两只猫，一只熟睡，一只望向镜头。",
+      "prompt": "保留原照双猫各自特征、相对体型和依偎姿态，写实白底棚拍、柔光与自然阴影，仅保留圆形软垫。",
+      "uploadDate": "2026-11-08T15:32:58.116356+00:00"
     }
   ]
 }
